@@ -1,0 +1,28 @@
+# Private ContextOS data
+projects/
+raw/
+sessions/
+archives/
+context-packs/
+debug/
+inbox/
+*.jsonl
+
+# Local/private settings
+settings.json
+settings.local.json
+.env
+*.secret
+*.token
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
