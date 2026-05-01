@@ -21,6 +21,27 @@ Default path:
 ```txt
 
 %USERPROFILE%\\AI-Memory-Vault
+```
+
+## Raw Transcript Copying
+
+ContextOS is privacy-first by default. It does not copy raw Claude Code transcript files into the memory vault unless explicitly enabled.
+
+To enable duplicate raw transcript copies:
+
+```powershell
+$env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
+```
+
+Only the exact value `true` enables copying. Any other value, including an unset variable, disables it.
+
+When enabled, `contextos-capture.ps1` copies the original transcript into:
+
+```text
+projects/<project-name>/raw/<timestamp>-transcript.jsonl
+```
+
+When disabled, ContextOS still reads the original `transcript_path` from Claude Code event metadata so `PROJECT_CONTEXT.md`, `SESSION_LOG.md`, `DECISIONS.md`, `NEXT_ACTIONS.md`, `TOKEN_SAVINGS.md`, and `graph.mmd` continue to update.
 
 ## Token Savings Configuration
 
@@ -81,6 +102,7 @@ Estimated repeated context avoided: 2,150 tokens
 ```text
 Token savings files:      1
 Estimated tokens avoided: 2150
+Raw transcript copying:   Disabled
 ```
 
 ### Resume pack token estimate

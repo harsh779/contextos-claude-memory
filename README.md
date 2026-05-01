@@ -135,7 +135,7 @@ AI-Memory-Vault/
       SESSION_LOG.md
       TOKEN_SAVINGS.md
       graph.mmd
-      raw/
+      raw/        (only when raw transcript copying is enabled)
       sessions/
       archives/
 ```
@@ -201,6 +201,7 @@ Projects tracked:                6
 Context packs created:           5
 Token savings files:             1
 Estimated tokens avoided:        2150
+Raw transcript copying:          Disabled
 Claude settings found:           Yes
 Hooks configured:                Yes
 SessionStart hook:               Yes
@@ -219,6 +220,7 @@ Key checks:
 - `SessionEnd hook: Yes` means session capture is configured.
 - `Token savings files` means ContextOS has started tracking token-savings estimates.
 - `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
+- `Raw transcript copying: Disabled` means ContextOS will process Claude's original transcript path but will not duplicate raw transcript files into the vault.
 
 Version-only check:
 
@@ -318,6 +320,12 @@ This project shows how AI workflows can be operationalised beyond one-off prompt
 Do not commit actual memory vault data.
 
 This repository should contain only reusable scripts, templates, docs, and examples.
+
+Raw Claude Code transcript copying is disabled by default. ContextOS still reads the original `transcript_path` from Claude Code event metadata to create summaries, decisions, next actions, `SESSION_LOG.md`, and `TOKEN_SAVINGS.md`. To opt in to keeping duplicate raw transcript files under `projects/<project-name>/raw/`, set:
+
+```powershell
+$env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
+```
 
 Private files to avoid committing:
 

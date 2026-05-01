@@ -14,7 +14,8 @@ By default, ContextOS may store:
 - Next actions
 - Basic project graph
 - Session metadata
-- Raw Claude Code transcript copy, if available
+
+Raw Claude Code transcript copies are not stored by default.
 
 Default vault path:
 
@@ -50,28 +51,29 @@ settings.local.json
 
 ## Raw Transcript Handling
 
-`contextos-capture.ps1` may copy Claude Code transcript files into:
+`contextos-capture.ps1` reads the original Claude Code `transcript_path` from event metadata so it can create summaries, decisions, next actions, `SESSION_LOG.md`, `TOKEN_SAVINGS.md`, and `graph.mmd`.
+
+By default, it does not duplicate raw transcript files into the vault.
+
+To opt in to raw transcript copying for audit or recovery, set:
+
+```powershell
+$env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
+```
+
+Only the exact value `true` enables copying. When enabled, transcript files are copied into:
 
 ```text
 projects/<project-name>/raw/
 ```
 
-This is useful for audit and recovery, but it can include sensitive information from your session.
-
-To disable raw transcript copy, edit:
+The copied file path is:
 
 ```text
-scripts/contextos-capture.ps1
+projects/<project-name>/raw/<timestamp>-transcript.jsonl
 ```
 
-Remove or comment this block:
-
-```powershell
-if ($transcriptPath -and (Test-Path $transcriptPath)) {
-    $rawCopyPath = Join-Path $rawDir "$timestamp-transcript.jsonl"
-    Copy-Item $transcriptPath $rawCopyPath -Force
-}
-```
+Raw transcripts can include sensitive information from your session. Keep copying disabled unless you have a specific need to retain them.
 
 ## Context Packs
 

@@ -19,6 +19,10 @@ function Get-ContextOSVaultPath {
     return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
 }
 
+function Test-CopyRawTranscriptsEnabled {
+    return ($env:CONTEXTOS_COPY_RAW_TRANSCRIPTS -ceq "true")
+}
+
 function Write-Status {
     param(
         [string]$Label,
@@ -143,6 +147,7 @@ Write-Status "Projects tracked:" $projectCount
 Write-Status "Context packs created:" $contextPackCount
 Write-Status "Token savings files:" @($tokenSavingsFiles).Count
 Write-Status "Estimated tokens avoided:" $totalEstimatedAvoided
+Write-Status "Raw transcript copying:" $(if (Test-CopyRawTranscriptsEnabled) { "Enabled" } else { "Disabled" })
 Write-Status "Claude settings found:" $(if (Test-Path $settingsPath) { "Yes" } else { "No" })
 Write-Status "Hooks configured:" $hooksConfigured
 Write-Status "SessionStart hook:" $sessionStartHook

@@ -96,6 +96,7 @@ Projects tracked:                6
 Context packs created:           5
 Token savings files:             1
 Estimated tokens avoided:        2150
+Raw transcript copying:          Disabled
 Claude settings found:           Yes
 Hooks configured:                Yes
 SessionStart hook:               Yes
@@ -115,6 +116,7 @@ How to read this:
 - `Context packs created` shows how many restart packs have been generated.
 - `Token savings files` shows how many projects have token-savings tracking.
 - `Estimated tokens avoided` estimates repeated project context avoided.
+- `Raw transcript copying` shows whether ContextOS is duplicating raw Claude Code transcripts into `projects/<project-name>/raw/`. It is disabled unless `CONTEXTOS_COPY_RAW_TRANSCRIPTS` is exactly `true`.
 
 ## Generating a Resume Pack
 
@@ -189,3 +191,13 @@ Estimated repeated context avoided: 2,150 tokens
 ```
 
 This means ContextOS likely helped avoid re-explaining around 2,150 tokens of project context across resumed sessions.
+
+## Regression Checks
+
+Run the raw transcript privacy regression check:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-raw-transcript-privacy.ps1
+```
+
+This verifies that raw transcript copying is disabled by default, remains disabled for non-exact values like `True`, and is enabled only when `CONTEXTOS_COPY_RAW_TRANSCRIPTS` is exactly `true`.

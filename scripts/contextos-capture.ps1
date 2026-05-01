@@ -8,6 +8,10 @@ function Get-ContextOSVaultPath {
     return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
 }
 
+function Test-CopyRawTranscriptsEnabled {
+    return ($env:CONTEXTOS_COPY_RAW_TRANSCRIPTS -ceq "true")
+}
+
 $vault = Get-ContextOSVaultPath
 $debugDir = Join-Path $vault "debug"
 New-Item -ItemType Directory -Force -Path $debugDir | Out-Null
@@ -59,10 +63,17 @@ $rawDir = Join-Path $projectDir "raw"
 $sessionsDir = Join-Path $projectDir "sessions"
 
 New-Item -ItemType Directory -Force -Path $projectDir | Out-Null
-New-Item -ItemType Directory -Force -Path $rawDir | Out-Null
 New-Item -ItemType Directory -Force -Path $sessionsDir | Out-Null
 
 $metadataPath = Join-Path $sessionsDir "$timestamp-event.json"
+$copyRawTranscripts = Test-CopyRawTranscriptsEnabled
+$rawCopyPath = $null
+
+if ($copyRawTranscripts -and $transcriptPath -and (Test-Path $transcriptPath)) {
+    New-Item -ItemType Directory -Force -Path $rawDir | Out-Null
+    $rawCopyPath = Join-Path $rawDir "$timestamp-transcript.jsonl"
+    Copy-Item $transcriptPath $rawCopyPath -Force
+}
 
 $metadata = [ordered]@{
     session_id = $sessionId
@@ -71,14 +82,11 @@ $metadata = [ordered]@{
     transcript_path = $transcriptPath
     captured_at = $timestamp
     raw_debug_path = $rawDebugPath
+    copy_raw_transcripts = $copyRawTranscripts
+    raw_copy_path = $rawCopyPath
 }
 
 $metadata | ConvertTo-Json -Depth 50 | Out-File -Encoding UTF8 $metadataPath
-
-if ($transcriptPath -and (Test-Path $transcriptPath)) {
-    $rawCopyPath = Join-Path $rawDir "$timestamp-transcript.jsonl"
-    Copy-Item $transcriptPath $rawCopyPath -Force
-}
 
 $processor = Join-Path $vault "scripts\process-session.py"
 python $processor --event "$metadataPath"
