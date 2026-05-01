@@ -6,6 +6,64 @@ ContextOS creates a reusable memory vault for each project, captures session pro
 
 ---
 
+## 5-Minute Quickstart
+
+### 1. Clone the repo
+
+```powershell
+git clone https://github.com/harsh779/contextos-claude-memory.git
+cd contextos-claude-memory
+```
+
+### 2. Run the installer
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Optional custom vault location:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:\ContextOS"
+```
+
+### 3. Add hooks to Claude Code
+
+The installer prints a Claude Code settings snippet.
+
+Add/merge that snippet into:
+
+```text
+%USERPROFILE%\.claude\settings.json
+```
+
+### 4. Test auto-bootstrap
+
+```powershell
+mkdir $env:USERPROFILE\Desktop\contextos-auto-test
+cd $env:USERPROFILE\Desktop\contextos-auto-test
+claude
+```
+
+Ask Claude Code:
+
+```text
+What ContextOS memory did you receive?
+```
+
+Expected result: Claude should mention auto-created memory files like `PROJECT_CONTEXT.md`, `DECISIONS.md`, `NEXT_ACTIONS.md`, and `graph.mmd`.
+
+### 5. Test commands
+
+Open a new PowerShell window, then run:
+
+```powershell
+contextos-find "test"
+contextos-resume contextos-auto-test
+contextos-open contextos-auto-test
+```
+
+
 ## Why this exists
 
 AI coding sessions often lose efficiency because the user has to repeatedly explain:
