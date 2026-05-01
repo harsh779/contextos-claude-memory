@@ -361,10 +361,10 @@ def update_project_context(project_context, cwd, now, summary, extracted):
 
     if "## Latest Auto-Captured Status" in context:
         context = re.sub(
-            r"\n---\n\n## Latest Auto-Captured Status[\s\S]*$",
-            latest_block,
-            context,
-            flags=re.MULTILINE,
+           r"\n---\n\n## Latest Auto-Captured Status[\s\S]*$",
+           lambda match: latest_block,
+           context,
+           flags=re.MULTILINE,
         )
         project_context.write_text(context, encoding="utf-8")
     else:
