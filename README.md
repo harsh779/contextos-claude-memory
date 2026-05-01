@@ -59,6 +59,7 @@ Open a new PowerShell window, then run:
 
 ```powershell
 contextos-status
+contextos-status --version
 contextos-find "test"
 contextos-resume contextos-auto-test
 contextos-open contextos-auto-test
@@ -94,6 +95,7 @@ ContextOS solves this by keeping a local, project-level memory system outside th
 | Restart packs | Generates compact context packs for future AI sessions |
 | Search | Lets you search across prior project memory |
 | Status check | Shows whether ContextOS is installed, hooked, and working |
+| Version check | Prints the installed ContextOS version |
 | Token estimate | Estimates repeated context avoided across resumed sessions |
 | Local-first design | Keeps private project memory on the user's machine |
 
@@ -148,6 +150,12 @@ Check whether ContextOS is working:
 contextos-status
 ```
 
+Check the installed ContextOS version:
+
+```powershell
+contextos-status --version
+```
+
 Search memory:
 
 ```powershell
@@ -184,6 +192,7 @@ Example output:
 ContextOS Status
 ================
 
+Version:                         v0.1.1-dev
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -202,6 +211,7 @@ Last capture time:               2026-05-01 16:43:36
 
 Key checks:
 
+- `Version` shows the installed ContextOS version.
 - `Vault exists: Yes` means the memory vault is present.
 - `Required scripts installed: Yes` means ContextOS scripts are installed.
 - `Hooks configured: Yes` means Claude Code settings include ContextOS hooks.
@@ -209,6 +219,18 @@ Key checks:
 - `SessionEnd hook: Yes` means session capture is configured.
 - `Token savings files` means ContextOS has started tracking token-savings estimates.
 - `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
+
+Version-only check:
+
+```powershell
+contextos-status --version
+```
+
+Expected output:
+
+```text
+ContextOS v0.1.1-dev
+```
 
 ### 2. Generate a restart pack
 
@@ -280,6 +302,7 @@ Working MVP:
 - memory search
 - restart pack generation
 - status command
+- version command
 - token-savings estimate
 
 ---
