@@ -2,7 +2,7 @@
 
 **A Windows-first local memory layer for Claude Code that reduces repeated context-setting across AI coding sessions.**
 
-ContextOS creates a reusable memory vault for each project, captures session progress, extracts decisions and next actions, and generates restart packs so long-running AI-assisted builds can continue without re-explaining the same context every time.
+ContextOS creates a reusable memory vault for each project, captures session progress, extracts decisions and next actions, estimates repeated context avoided, and generates restart packs so long-running AI-assisted builds can continue without re-explaining the same context every time.
 
 ---
 
@@ -31,7 +31,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:
 
 The installer prints a Claude Code settings snippet.
 
-Add/merge that snippet into:
+Add or merge that snippet into:
 
 ```text
 %USERPROFILE%\.claude\settings.json
@@ -58,11 +58,13 @@ Expected result: Claude should mention auto-created memory files like `PROJECT_C
 Open a new PowerShell window, then run:
 
 ```powershell
+contextos-status
 contextos-find "test"
 contextos-resume contextos-auto-test
 contextos-open contextos-auto-test
 ```
 
+---
 
 ## Why this exists
 
@@ -91,13 +93,15 @@ ContextOS solves this by keeping a local, project-level memory system outside th
 | Next-action extraction | Pulls follow-up work into `NEXT_ACTIONS.md` |
 | Restart packs | Generates compact context packs for future AI sessions |
 | Search | Lets you search across prior project memory |
+| Status check | Shows whether ContextOS is installed, hooked, and working |
+| Token estimate | Estimates repeated context avoided across resumed sessions |
 | Local-first design | Keeps private project memory on the user's machine |
 
 ---
 
 ## How it works
 
-```txt
+```text
 Open Claude Code inside any project folder
 ↓
 ContextOS detects the current project
@@ -119,7 +123,7 @@ Future sessions can restart from a compact context pack
 
 ## What gets created per project
 
-```txt
+```text
 AI-Memory-Vault/
   projects/
     project-name/
@@ -127,6 +131,7 @@ AI-Memory-Vault/
       DECISIONS.md
       NEXT_ACTIONS.md
       SESSION_LOG.md
+      TOKEN_SAVINGS.md
       graph.mmd
       raw/
       sessions/
@@ -136,6 +141,12 @@ AI-Memory-Vault/
 ---
 
 ## Commands
+
+Check whether ContextOS is working:
+
+```powershell
+contextos-status
+```
 
 Search memory:
 
@@ -157,9 +168,9 @@ contextos-open resume-customiser-repo
 
 ---
 
----
+## Demo
 
-## How to know ContextOS is working
+### 1. Check whether ContextOS is working
 
 Run:
 
@@ -199,6 +210,41 @@ Key checks:
 - `Token savings files` means ContextOS has started tracking token-savings estimates.
 - `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
 
+### 2. Generate a restart pack
+
+Run:
+
+```powershell
+contextos-resume resume-customiser-repo
+```
+
+Example output:
+
+```text
+ContextOS resume pack created:
+C:\Users\<User>\AI-Memory-Vault\context-packs\resume-customiser-repo-context-pack-2026-05-01_16-55-00.md
+
+Copied to clipboard.
+
+Token estimate:
+---------------
+Resume pack characters: 4,800
+Estimated tokens: 1,200
+Estimated re-explanation avoided per resumed session: ~1,200 tokens
+```
+
+### 3. Confirm Claude receives project memory
+
+When Claude Code starts inside a tracked project, ContextOS injects a visible startup line:
+
+```text
+ContextOS active: loaded memory for resume-customiser-repo from C:\Users\<User>\AI-Memory-Vault\projects\resume-customiser-repo
+```
+
+That line confirms Claude received local project memory before the session begins.
+
+---
+
 ## Token savings estimate
 
 ContextOS estimates token savings using a simple approximation:
@@ -219,6 +265,8 @@ Estimated repeated context avoided: 2,150 tokens
 
 This means ContextOS likely helped avoid re-explaining around 2,150 tokens of project context across resumed sessions.
 
+---
+
 ## Current status
 
 Working MVP:
@@ -231,6 +279,8 @@ Working MVP:
 - log compression
 - memory search
 - restart pack generation
+- status command
+- token-savings estimate
 
 ---
 
@@ -262,8 +312,19 @@ Private files to avoid committing:
 - [Architecture](docs/ARCHITECTURE.md)
 - [Windows setup](docs/SETUP_WINDOWS.md)
 - [Usage](docs/USAGE.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Roadmap](docs/ROADMAP.md)
+- [v0.1.0 release notes](docs/RELEASE_NOTES_v0.1.0.md)
+
+---
+
+## Release
+
+Latest release:
+
+[ContextOS v0.1.0 — Local Claude Code Memory MVP](https://github.com/harsh779/contextos-claude-memory/releases/tag/v0.1.0)
 
 ---
 
