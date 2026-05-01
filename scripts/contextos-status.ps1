@@ -1,6 +1,15 @@
-param()
+param(
+    [Parameter(ValueFromRemainingArguments=$true)]
+    [string[]]$ArgsList
+)
 
 $ErrorActionPreference = "SilentlyContinue"
+$ContextOSVersion = "v0.1.1-dev"
+
+if ($ArgsList -contains "--version" -or $ArgsList -contains "-v") {
+    Write-Host "ContextOS $ContextOSVersion"
+    exit 0
+}
 
 function Get-ContextOSVaultPath {
     if (![string]::IsNullOrWhiteSpace($env:CONTEXTOS_VAULT_PATH)) {
@@ -125,6 +134,7 @@ Write-Host "ContextOS Status"
 Write-Host "================"
 Write-Host ""
 
+Write-Status "Version:" $ContextOSVersion
 Write-Status "Vault path:" $vault
 Write-Status "Vault exists:" $(if (Test-Path $vault) { "Yes" } else { "No" })
 Write-Status "Scripts folder exists:" $(if (Test-Path $scriptsDir) { "Yes" } else { "No" })
