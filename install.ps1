@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ContextOSVersion = "v0.1.2"
+$ContextOSVersion = "v0.1.3-dev"
 
 function Write-Step {
     param([string]$Message)
@@ -109,6 +109,7 @@ $wrapperMap = [ordered]@{
     "contextos-resume.ps1" = "contextos-resume.ps1"
     "contextos-open.ps1" = "contextos-open.ps1"
     "contextos-status.ps1" = "contextos-status.ps1"
+    "contextos-doctor.ps1" = "contextos-doctor.ps1"
 }
 
 $createdWrappers = @()
@@ -259,5 +260,6 @@ Write-Host ("PATH update:                  {0}" -f $pathStatus)
 Write-Host ""
 Write-Host "Next recommended command:"
 Write-Host "  contextos-status"
+Write-Host "  contextos-doctor"
 Write-Host ""
 Write-Step "Install/upgrade complete."

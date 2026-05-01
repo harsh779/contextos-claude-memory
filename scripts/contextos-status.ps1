@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "SilentlyContinue"
-$ContextOSVersion = "v0.1.2"
+$ContextOSVersion = "v0.1.3-dev"
 
 if ($ArgsList -contains "--version" -or $ArgsList -contains "-v") {
     Write-Host "ContextOS $ContextOSVersion"
@@ -45,7 +45,8 @@ $requiredScripts = @(
     "compress-project-memory.py",
     "contextos-find.ps1",
     "contextos-resume.ps1",
-    "contextos-open.ps1"
+    "contextos-open.ps1",
+    "contextos-doctor.ps1"
 )
 
 $missingScripts = @()
@@ -148,6 +149,7 @@ Write-Status "Context packs created:" $contextPackCount
 Write-Status "Token savings files:" @($tokenSavingsFiles).Count
 Write-Status "Estimated tokens avoided:" $totalEstimatedAvoided
 Write-Status "Raw transcript copying:" $(if (Test-CopyRawTranscriptsEnabled) { "Enabled" } else { "Disabled" })
+Write-Status "Doctor command available:" $(if (Test-Path (Join-Path $vault "contextos-doctor.ps1")) { "Yes" } else { "No" })
 Write-Status "Claude settings found:" $(if (Test-Path $settingsPath) { "Yes" } else { "No" })
 Write-Status "Hooks configured:" $hooksConfigured
 Write-Status "SessionStart hook:" $sessionStartHook

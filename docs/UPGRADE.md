@@ -47,6 +47,7 @@ contextos-status.ps1
 contextos-find.ps1
 contextos-resume.ps1
 contextos-open.ps1
+contextos-doctor.ps1
 ```
 
 The installer may also update:
@@ -75,6 +76,7 @@ Open a new PowerShell window if PATH was updated, then run:
 
 ```powershell
 contextos-status
+contextos-doctor
 ```
 
 Expected checks:
@@ -90,6 +92,7 @@ You can also run the local script directly:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\contextos-status.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\contextos-doctor.ps1
 ```
 
 ## Troubleshooting Old Behavior
@@ -107,6 +110,7 @@ AI-Memory-Vault\scripts\
 4. If you use a custom vault, rerun install with the same `-VaultPath`.
 5. Open a new PowerShell window if PATH was updated.
 6. Check Claude Code settings and confirm hooks point to the current vault scripts.
+7. Run `contextos-doctor` and follow the Recommended Fixes section.
 
 For v0.1.1 and later, verify raw transcript privacy behavior with:
 

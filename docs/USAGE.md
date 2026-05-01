@@ -118,6 +118,22 @@ How to read this:
 - `Estimated tokens avoided` estimates repeated project context avoided.
 - `Raw transcript copying` shows whether ContextOS is duplicating raw Claude Code transcripts into `projects/<project-name>/raw/`. It is disabled unless `CONTEXTOS_COPY_RAW_TRANSCRIPTS` is exactly `true`.
 
+## Doctor Diagnostics
+
+Run:
+
+```powershell
+contextos-doctor
+```
+
+This checks the vault, installed scripts, command wrappers, PATH, Python, Claude Code hooks, raw transcript privacy status, and recommended fixes.
+
+Direct fallback from the repo:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\contextos-doctor.ps1
+```
+
 ## Generating a Resume Pack
 
 Run:

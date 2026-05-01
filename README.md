@@ -62,6 +62,7 @@ Open a new PowerShell window, then run:
 ```powershell
 contextos-status
 contextos-status --version
+contextos-doctor
 contextos-find "test"
 contextos-resume contextos-auto-test
 contextos-open contextos-auto-test
@@ -158,6 +159,12 @@ Check the installed ContextOS version:
 contextos-status --version
 ```
 
+Run install diagnostics:
+
+```powershell
+contextos-doctor
+```
+
 Search memory:
 
 ```powershell
@@ -194,7 +201,7 @@ Example output:
 ContextOS Status
 ================
 
-Version:                         v0.1.2
+Version:                         v0.1.3-dev
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -204,6 +211,7 @@ Context packs created:           5
 Token savings files:             1
 Estimated tokens avoided:        2150
 Raw transcript copying:          Disabled
+Doctor command available:        Yes
 Claude settings found:           Yes
 Hooks configured:                Yes
 SessionStart hook:               Yes
@@ -223,6 +231,7 @@ Key checks:
 - `Token savings files` means ContextOS has started tracking token-savings estimates.
 - `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
 - `Raw transcript copying: Disabled` means ContextOS will process Claude's original transcript path but will not duplicate raw transcript files into the vault.
+- `Doctor command available: Yes` means the diagnostic command wrapper is installed in the vault.
 
 Version-only check:
 
@@ -233,7 +242,7 @@ contextos-status --version
 Expected output:
 
 ```text
-ContextOS v0.1.2
+ContextOS v0.1.3-dev
 ```
 
 ### 2. Generate a restart pack
@@ -346,10 +355,13 @@ Private files to avoid committing:
 - [Windows setup](docs/SETUP_WINDOWS.md)
 - [Usage](docs/USAGE.md)
 - [Upgrade guide](docs/UPGRADE.md)
+- [Doctor diagnostics](docs/DOCTOR.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Roadmap](docs/ROADMAP.md)
+- [v0.1.3 release notes](docs/RELEASE_NOTES_v0.1.3.md)
+- [v0.1.3 release checklist](docs/RELEASE_CHECKLIST_v0.1.3.md)
 - [v0.1.2 release notes](docs/RELEASE_NOTES_v0.1.2.md)
 - [v0.1.2 release checklist](docs/RELEASE_CHECKLIST_v0.1.2.md)
 - [v0.1.1 release notes](docs/RELEASE_NOTES_v0.1.1.md)
@@ -362,6 +374,10 @@ Private files to avoid committing:
 Latest release notes:
 
 [ContextOS v0.1.2 - Installer and Upgrade Reliability](docs/RELEASE_NOTES_v0.1.2.md)
+
+Prepared release notes:
+
+[ContextOS v0.1.3 - Doctor Command and Self-Healing Diagnostics](docs/RELEASE_NOTES_v0.1.3.md)
 
 ---
 
@@ -377,6 +393,7 @@ Then validate:
 
 ```powershell
 contextos-status
+contextos-doctor
 ```
 
 See [Upgrade guide](docs/UPGRADE.md) for custom vaults and troubleshooting.
