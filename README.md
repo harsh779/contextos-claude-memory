@@ -98,7 +98,10 @@ ContextOS solves this by keeping a local, project-level memory system outside th
 | Restart packs | Generates compact context packs for future AI sessions |
 | Search | Lets you search across prior project memory |
 | Status check | Shows whether ContextOS is installed, hooked, and working |
+| Doctor diagnostics | Checks vault health, installed scripts, PATH, Python, Claude hooks, and privacy state |
 | Version check | Prints the installed ContextOS version |
+| Upgrade-safe installer | Safely refreshes vault scripts and wrappers after pulling new releases |
+| Raw transcript privacy toggle | Keeps duplicate raw transcript copying disabled unless explicitly enabled |
 | Token estimate | Estimates repeated context avoided across resumed sessions |
 | Local-first design | Keeps private project memory on the user's machine |
 
@@ -315,7 +318,10 @@ Working MVP:
 - memory search
 - restart pack generation
 - status command
+- doctor diagnostics command
 - version command
+- upgrade-safe installer reruns
+- privacy-first raw transcript copy toggle
 - token-savings estimate
 
 ---
