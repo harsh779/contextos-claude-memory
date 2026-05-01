@@ -54,6 +54,22 @@ if (Test-Path $packsDir) {
     $contextPackCount = @(Get-ChildItem $packsDir -File -Filter "*.md").Count
 }
 
+$tokenSavingsFiles = @()
+$totalEstimatedAvoided = 0
+
+if (Test-Path $projectsDir) {
+    $tokenSavingsFiles = Get-ChildItem $projectsDir -Recurse -File -Filter "TOKEN_SAVINGS.md"
+
+    foreach ($file in $tokenSavingsFiles) {
+        $text = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
+
+        if ($text -match "Estimated repeated context avoided:\s*([\d,]+)\s*tokens") {
+            $value = $matches[1] -replace ",", ""
+            $totalEstimatedAvoided += [int]$value
+        }
+    }
+}
+
 $hooksConfigured = "No"
 $sessionStartHook = "No"
 $sessionEndHook = "No"
@@ -115,6 +131,8 @@ Write-Status "Scripts folder exists:" $(if (Test-Path $scriptsDir) { "Yes" } els
 Write-Status "Required scripts installed:" $(if ($missingScripts.Count -eq 0) { "Yes" } else { "No" })
 Write-Status "Projects tracked:" $projectCount
 Write-Status "Context packs created:" $contextPackCount
+Write-Status "Token savings files:" @($tokenSavingsFiles).Count
+Write-Status "Estimated tokens avoided:" $totalEstimatedAvoided
 Write-Status "Claude settings found:" $(if (Test-Path $settingsPath) { "Yes" } else { "No" })
 Write-Status "Hooks configured:" $hooksConfigured
 Write-Status "SessionStart hook:" $sessionStartHook
