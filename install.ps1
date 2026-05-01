@@ -62,6 +62,7 @@ $wrapperMap = @{
     "contextos-find.ps1" = "contextos-find.ps1"
     "contextos-resume.ps1" = "contextos-resume.ps1"
     "contextos-open.ps1" = "contextos-open.ps1"
+    "contextos-status.ps1" = "contextos-status.ps1"
 }
 
 foreach ($wrapperName in $wrapperMap.Keys) {
