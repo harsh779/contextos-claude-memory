@@ -1,4 +1,5 @@
 {
+  "_comment": "Example Claude Code settings for ContextOS. Replace <User> with your Windows username, or use the path printed by install.ps1.",
   "hooks": {
     "SessionStart": [
       {
@@ -26,6 +27,7 @@
     ]
   },
   "permissions": {
+    "_comment": "These permissions allow ContextOS to read/write only inside the local memory vault and run its own hook scripts.",
     "allow": [
       "Read(C:\\Users\\<User>\\AI-Memory-Vault\\**)",
       "Write(C:\\Users\\<User>\\AI-Memory-Vault\\**)",
