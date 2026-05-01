@@ -80,7 +80,7 @@ Run:
 contextos-status
 ```
 
-This shows whether ContextOS is installed and working.
+This shows whether ContextOS is installed and working. Run it after install or upgrade.
 
 Example:
 

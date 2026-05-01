@@ -27,6 +27,8 @@ Optional custom vault location:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:\ContextOS"
 ```
 
+Rerunning `install.ps1` after pulling a new ContextOS version is safe. It updates reusable scripts in your vault and does not delete existing project memory.
+
 ### 3. Add hooks to Claude Code
 
 The installer prints a Claude Code settings snippet.
@@ -192,7 +194,7 @@ Example output:
 ContextOS Status
 ================
 
-Version:                         v0.1.1-dev
+Version:                         v0.1.2-dev
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -231,7 +233,7 @@ contextos-status --version
 Expected output:
 
 ```text
-ContextOS v0.1.1-dev
+ContextOS v0.1.2-dev
 ```
 
 ### 2. Generate a restart pack
@@ -343,6 +345,7 @@ Private files to avoid committing:
 - [Architecture](docs/ARCHITECTURE.md)
 - [Windows setup](docs/SETUP_WINDOWS.md)
 - [Usage](docs/USAGE.md)
+- [Upgrade guide](docs/UPGRADE.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
@@ -357,6 +360,24 @@ Private files to avoid committing:
 Latest release notes:
 
 [ContextOS v0.1.1 - Privacy Hardening](docs/RELEASE_NOTES_v0.1.1.md)
+
+---
+
+## Upgrade
+
+After pulling a new ContextOS version, rerun the installer:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Then validate:
+
+```powershell
+contextos-status
+```
+
+See [Upgrade guide](docs/UPGRADE.md) for custom vaults and troubleshooting.
 
 ---
 

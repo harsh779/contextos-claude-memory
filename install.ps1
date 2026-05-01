@@ -5,10 +5,22 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ContextOSVersion = "v0.1.2-dev"
 
 function Write-Step {
     param([string]$Message)
     Write-Host "[ContextOS] $Message"
+}
+
+function Write-Detail {
+    param([string]$Message)
+    Write-Host "  - $Message"
+}
+
+function Format-YesNo {
+    param([bool]$Value)
+    if ($Value) { return "Yes" }
+    return "No"
 }
 
 function Resolve-ContextOSVaultPath {
@@ -25,14 +37,39 @@ function Resolve-ContextOSVaultPath {
     return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
 }
 
+function Test-PathContainsEntry {
+    param(
+        [string]$PathValue,
+        [string]$Entry
+    )
+
+    if ([string]::IsNullOrWhiteSpace($PathValue)) {
+        return $false
+    }
+
+    $entries = $PathValue -split ";" | ForEach-Object { $_.Trim().TrimEnd("\") }
+    $normalizedEntry = $Entry.Trim().TrimEnd("\")
+
+    return @($entries | Where-Object { $_ -ieq $normalizedEntry }).Count -gt 0
+}
+
 $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceScripts = Join-Path $repoRoot "scripts"
 $vault = Resolve-ContextOSVaultPath -InputPath $VaultPath
 $vaultScripts = Join-Path $vault "scripts"
+$envVarStatus = "Skipped"
+$pathStatus = "Skipped"
+$pythonStatus = "Warning shown"
+$settingsSnippetPrinted = $false
 
-Write-Step "Installing ContextOS"
-Write-Step "Repo root: $repoRoot"
-Write-Step "Vault path: $vault"
+Write-Host ""
+Write-Step "Installing ContextOS $ContextOSVersion"
+Write-Detail "Repo root: $repoRoot"
+Write-Detail "Vault path: $vault"
+Write-Detail "Safe to rerun after pulling a new ContextOS version."
+Write-Detail "Existing project memory is not deleted or overwritten."
+Write-Detail "Rerunning install.ps1 updates reusable scripts in: $vaultScripts"
+Write-Host ""
 
 if (!(Test-Path $sourceScripts)) {
     throw "Source scripts folder not found: $sourceScripts"
@@ -51,19 +88,30 @@ foreach ($folder in $folders) {
     New-Item -ItemType Directory -Force -Path $folder | Out-Null
 }
 
-Write-Step "Created vault folders."
+Write-Step "Vault folders ready."
 
-Copy-Item (Join-Path $sourceScripts "*.ps1") $vaultScripts -Force
-Copy-Item (Join-Path $sourceScripts "*.py") $vaultScripts -Force
+$scriptFiles = @(
+    Get-ChildItem -Path (Join-Path $sourceScripts "*.ps1") -File
+    Get-ChildItem -Path (Join-Path $sourceScripts "*.py") -File
+)
 
-Write-Step "Copied scripts to vault/scripts."
+foreach ($scriptFile in $scriptFiles) {
+    Copy-Item $scriptFile.FullName $vaultScripts -Force
+}
 
-$wrapperMap = @{
+Write-Step "Scripts copied to $vaultScripts"
+foreach ($scriptFile in ($scriptFiles | Sort-Object Name)) {
+    Write-Detail $scriptFile.Name
+}
+
+$wrapperMap = [ordered]@{
     "contextos-find.ps1" = "contextos-find.ps1"
     "contextos-resume.ps1" = "contextos-resume.ps1"
     "contextos-open.ps1" = "contextos-open.ps1"
     "contextos-status.ps1" = "contextos-status.ps1"
 }
+
+$createdWrappers = @()
 
 foreach ($wrapperName in $wrapperMap.Keys) {
     $targetScript = $wrapperMap[$wrapperName]
@@ -78,35 +126,60 @@ param(
 
 & "$targetPath" @ArgsList
 "@ | Set-Content $wrapperPath -Encoding UTF8
+
+    $createdWrappers += $wrapperName
 }
 
-Write-Step "Created command wrappers in vault root."
+Write-Step "Command wrappers ready in vault root."
+foreach ($wrapperName in $createdWrappers) {
+    Write-Detail $wrapperName
+}
 
 if ($SetEnvironmentVariable) {
-    [Environment]::SetEnvironmentVariable("CONTEXTOS_VAULT_PATH", $vault, "User")
-    $env:CONTEXTOS_VAULT_PATH = $vault
-    Write-Step "Set user environment variable CONTEXTOS_VAULT_PATH."
+    try {
+        [Environment]::SetEnvironmentVariable("CONTEXTOS_VAULT_PATH", $vault, "User")
+        $env:CONTEXTOS_VAULT_PATH = $vault
+        $envVarStatus = "Set to $vault"
+    } catch {
+        $env:CONTEXTOS_VAULT_PATH = $vault
+        $envVarStatus = "Warning: could not set user environment variable; set for current process only"
+        Write-Host "[ContextOS] WARNING: Could not set user CONTEXTOS_VAULT_PATH. $($_.Exception.Message)"
+    }
+} else {
+    $envVarStatus = "Skipped"
 }
 
-if (!$SkipPathUpdate) {
+Write-Step "CONTEXTOS_VAULT_PATH: $envVarStatus"
+
+if ($SkipPathUpdate) {
+    $pathStatus = "Skipped by -SkipPathUpdate"
+} else {
     $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
     if ([string]::IsNullOrWhiteSpace($userPath)) {
         $userPath = ""
     }
 
-    if ($userPath -notlike "*$vault*") {
-        $newPath = if ([string]::IsNullOrWhiteSpace($userPath)) { $vault } else { "$userPath;$vault" }
-        [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
-        Write-Step "Added vault root to user PATH. Restart PowerShell for permanent PATH to load."
+    if (Test-PathContainsEntry -PathValue $userPath -Entry $vault) {
+        $pathStatus = "Already present"
     } else {
-        Write-Step "Vault root already present in user PATH."
+        $newPath = if ([string]::IsNullOrWhiteSpace($userPath)) { $vault } else { "$userPath;$vault" }
+        try {
+            [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+            $pathStatus = "Updated; restart PowerShell for permanent PATH to load"
+        } catch {
+            $pathStatus = "Warning: could not update user PATH"
+            Write-Host "[ContextOS] WARNING: Could not update user PATH. $($_.Exception.Message)"
+        }
     }
 }
 
-try {
-    python --version | Out-Null
-    Write-Step "Python detected."
-} catch {
+Write-Step "PATH update: $pathStatus"
+
+if (Get-Command python -ErrorAction SilentlyContinue) {
+    $pythonVersion = (& python --version 2>&1)
+    $pythonStatus = "Detected ($pythonVersion)"
+    Write-Step "Python detected: $pythonVersion"
+} else {
     Write-Host "[ContextOS] WARNING: Python was not detected. Install Python before using SessionEnd processing."
 }
 
@@ -156,12 +229,35 @@ Write-Host "Claude Code settings snippet:"
 Write-Host "--------------------------------"
 Write-Host $settingsSnippet
 Write-Host "--------------------------------"
+$settingsSnippetPrinted = $true
+
+$wrapperChecks = foreach ($wrapperName in $wrapperMap.Keys) {
+    Test-Path (Join-Path $vault $wrapperName)
+}
+
+$scriptsCopied = foreach ($scriptFile in $scriptFiles) {
+    Test-Path (Join-Path $vaultScripts $scriptFile.Name)
+}
+
+if ($settingsSnippetPrinted) {
+    $settingsSnippetStatus = "Printed"
+} else {
+    $settingsSnippetStatus = "Not printed"
+}
+
 Write-Host ""
-Write-Step "Install complete."
+Write-Host "Post-install validation summary"
+Write-Host "-------------------------------"
+Write-Host ("Vault exists:                 {0}" -f (Format-YesNo (Test-Path $vault)))
+Write-Host ("Scripts folder exists:        {0}" -f (Format-YesNo (Test-Path $vaultScripts)))
+Write-Host ("Scripts copied:               {0}/{1}" -f @($scriptsCopied | Where-Object { $_ }).Count, @($scriptFiles).Count)
+Write-Host ("Command wrappers created:     {0}/{1}" -f @($wrapperChecks | Where-Object { $_ }).Count, @($wrapperMap.Keys).Count)
+Write-Host ("Python:                       {0}" -f $pythonStatus)
+Write-Host ("Claude settings snippet:      {0}" -f $settingsSnippetStatus)
+Write-Host ("CONTEXTOS_VAULT_PATH:         {0}" -f $envVarStatus)
+Write-Host ("PATH update:                  {0}" -f $pathStatus)
 Write-Host ""
-Write-Host "Next test:"
-Write-Host "  mkdir `$env:USERPROFILE\Desktop\contextos-auto-test"
-Write-Host "  cd `$env:USERPROFILE\Desktop\contextos-auto-test"
-Write-Host "  claude"
+Write-Host "Next recommended command:"
+Write-Host "  contextos-status"
 Write-Host ""
-Write-Host "Then ask: What ContextOS memory did you receive?"
+Write-Step "Install/upgrade complete."

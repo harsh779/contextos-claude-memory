@@ -82,3 +82,13 @@ Exit with `Ctrl + D`, then check:
 ```powershell
 Get-ChildItem C:\Users\<User>\AI-Memory-Vault\projects\contextos-auto-test
 ```
+
+## 7. Check Status
+
+After install or upgrade, run:
+
+```powershell
+contextos-status
+```
+
+This confirms the vault path, installed scripts, Claude Code hooks, and raw transcript copying status.

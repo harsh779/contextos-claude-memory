@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "SilentlyContinue"
-$ContextOSVersion = "v0.1.1-dev"
+$ContextOSVersion = "v0.1.2-dev"
 
 if ($ArgsList -contains "--version" -or $ArgsList -contains "-v") {
     Write-Host "ContextOS $ContextOSVersion"
