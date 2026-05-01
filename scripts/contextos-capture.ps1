@@ -1,6 +1,14 @@
 $ErrorActionPreference = "Stop"
 
-$vault = "C:\Users\Harsh\AI-Memory-Vault"
+function Get-ContextOSVaultPath {
+    if (![string]::IsNullOrWhiteSpace($env:CONTEXTOS_VAULT_PATH)) {
+        return $env:CONTEXTOS_VAULT_PATH
+    }
+
+    return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
+}
+
+$vault = Get-ContextOSVaultPath
 $debugDir = Join-Path $vault "debug"
 New-Item -ItemType Directory -Force -Path $debugDir | Out-Null
 
@@ -72,6 +80,7 @@ if ($transcriptPath -and (Test-Path $transcriptPath)) {
     Copy-Item $transcriptPath $rawCopyPath -Force
 }
 
-python "C:\Users\Harsh\AI-Memory-Vault\scripts\process-session.py" --event "$metadataPath"
+$processor = Join-Path $vault "scripts\process-session.py"
+python $processor --event "$metadataPath"
 
 exit 0
