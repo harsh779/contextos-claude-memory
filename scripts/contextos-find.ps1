@@ -3,7 +3,15 @@ param(
     [string[]]$Query
 )
 
-$vault = "C:\Users\Harsh\AI-Memory-Vault"
+function Get-ContextOSVaultPath {
+    if (![string]::IsNullOrWhiteSpace($env:CONTEXTOS_VAULT_PATH)) {
+        return $env:CONTEXTOS_VAULT_PATH
+    }
+
+    return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
+}
+
+$vault = Get-ContextOSVaultPath
 $projectsPath = Join-Path $vault "projects"
 $queryText = ($Query -join " ").Trim()
 
@@ -38,8 +46,7 @@ function Is-LowValueLine {
 
     if ($trimmed.StartsWith("#")) { return $true }
     if ($trimmed -like "**Working Directory:**") { return $true }
-    if ($trimmed -like "*C:\Users\Harsh\AI-Memory-Vault*") { return $true }
-    if ($trimmed -like "*C:\Users\Harsh\OneDrive\Desktop*") { return $true }
+    if ($trimmed -like "*$vault*") { return $true }
     if ($trimmed -like "*Older session log archived here:*") { return $true }
     if ($trimmed -like "*Compression time:*") { return $true }
     if ($trimmed -like "*matched file*") { return $true }
