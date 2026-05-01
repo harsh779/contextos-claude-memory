@@ -1,63 +1,63 @@
 # ContextOS for Claude Code
 
-ContextOS is a Windows-first local memory layer for Claude Code.
+**A Windows-first local memory layer for Claude Code that reduces repeated context-setting across AI coding sessions.**
 
-It auto-creates project memory, injects context at session start, captures session context at exit, extracts decisions and next actions, compresses long logs, and lets you search or resume old work without re-explaining everything.
+ContextOS creates a reusable memory vault for each project, captures session progress, extracts decisions and next actions, and generates restart packs so long-running AI-assisted builds can continue without re-explaining the same context every time.
+
+---
 
 ## Why this exists
 
-Claude Code sessions can become expensive and repetitive because users often need to re-explain:
+AI coding sessions often lose efficiency because the user has to repeatedly explain:
 
 - project goal
+- repo state
 - prior decisions
 - current blockers
 - next actions
-- repo state
 - files touched
-- commands used
+- commands already tested
 
-ContextOS solves this by maintaining a local memory vault outside Claude.
+ContextOS solves this by keeping a local, project-level memory system outside the AI chat window.
 
-## Core behavior
+---
+
+## What it does
+
+| Capability | What it means |
+|---|---|
+| Project memory vault | Creates structured memory files for each local project |
+| Session start context | Injects relevant project memory when Claude Code starts |
+| Session end capture | Saves session progress when work ends |
+| Decision extraction | Pulls key decisions into `DECISIONS.md` |
+| Next-action extraction | Pulls follow-up work into `NEXT_ACTIONS.md` |
+| Restart packs | Generates compact context packs for future AI sessions |
+| Search | Lets you search across prior project memory |
+| Local-first design | Keeps private project memory on the user's machine |
+
+---
+
+## How it works
 
 ```txt
-Open Claude Code in any folder
+Open Claude Code inside any project folder
 ↓
-ContextOS detects current working directory
+ContextOS detects the current project
 ↓
-Auto-creates project memory if missing
+Creates or loads project memory
 ↓
-Injects relevant memory into Claude Code
+Injects relevant memory at session start
+↓
+User works normally in Claude Code
 ↓
 Session ends
 ↓
-ContextOS captures transcript metadata
+ContextOS captures progress, decisions, and next actions
 ↓
-Updates SESSION_LOG.md
-↓
-Extracts decisions into DECISIONS.md
-↓
-Extracts actions into NEXT_ACTIONS.md
-↓
-Updates PROJECT_CONTEXT.md
-↓
-Compresses logs when they grow too large
+Future sessions can restart from a compact context pack
 ```
 
-## Features
-
-- Global Claude Code hooks
-- Zero per-project setup
-- Auto-bootstrap for new projects
-- SessionStart memory injection
-- SessionEnd session capture
-- Decision extraction
-- Next-action extraction
-- Log compression
-- Global search command: `contextos-find`
-- Restart brief generator: `contextos-resume`
-- Project memory opener: `contextos-open`
-- Privacy-safe local-first design
+---
 
 ## What gets created per project
 
@@ -75,6 +75,8 @@ AI-Memory-Vault/
       archives/
 ```
 
+---
+
 ## Commands
 
 Search memory:
@@ -83,34 +85,44 @@ Search memory:
 contextos-find "github remote"
 ```
 
-Create restart pack:
+Create a restart pack:
 
 ```powershell
 contextos-resume resume-customiser-repo
 ```
 
-Open memory folder:
+Open a project memory folder:
 
 ```powershell
 contextos-open resume-customiser-repo
 ```
 
+---
+
 ## Current status
 
-MVP working:
+Working MVP:
 
-- global auto-bootstrap works
-- session-start context injection works
-- session-end capture works
-- clean decision extraction works
-- clean next-action extraction works
-- compression works
-- search works
-- resume pack generation works
+- global auto-bootstrap
+- session-start context injection
+- session-end capture
+- decision extraction
+- next-action extraction
+- log compression
+- memory search
+- restart pack generation
+
+---
+
+## Portfolio relevance
+
+This project shows how AI workflows can be operationalised beyond one-off prompting. The goal is not just to use AI tools, but to build a repeatable system that improves continuity, reduces wasted tokens, and makes long-running product builds easier to resume.
+
+---
 
 ## Privacy note
 
-Do not commit your actual memory vault data.
+Do not commit actual memory vault data.
 
 This repository should contain only reusable scripts, templates, docs, and examples.
 
@@ -123,6 +135,8 @@ Private files to avoid committing:
 - personal Claude settings
 - project-specific client data
 
+---
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
@@ -130,3 +144,9 @@ Private files to avoid committing:
 - [Usage](docs/USAGE.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Roadmap](docs/ROADMAP.md)
+
+---
+
+## Author
+
+Built by [Harsh Khandelwal](https://github.com/harsh779) as part of a broader AI-assisted product-building and workflow automation stack.
