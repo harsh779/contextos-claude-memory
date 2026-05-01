@@ -81,6 +81,9 @@ $pack += Get-FileSection -Title "Latest Session Log" -Path $sessionLog -MaxChars
 
 $pack | Set-Content $outputPath -Encoding UTF8
 
+$characterCount = $pack.Length
+$estimatedTokens = [Math]::Ceiling($characterCount / 4)
+
 try {
     $pack | Set-Clipboard
     $copied = $true
@@ -96,6 +99,13 @@ if ($copied) {
     Write-Host ""
     Write-Host "Copied to clipboard."
 }
+
+Write-Host ""
+Write-Host "Token estimate:"
+Write-Host "---------------"
+Write-Host "Resume pack characters: $characterCount"
+Write-Host "Estimated tokens: $estimatedTokens"
+Write-Host "Estimated re-explanation avoided per resumed session: ~$estimatedTokens tokens"
 
 Write-Host ""
 Write-Host "Preview:"
