@@ -371,6 +371,69 @@ def update_project_context(project_context, cwd, now, summary, extracted):
         append(project_context, latest_block)
 
 
+def estimate_tokens_from_text(text):
+    if not text:
+        return 0
+    return max(1, (len(text) + 3) // 4)
+
+
+def update_token_savings(project_dir, project_name, now):
+    token_file = project_dir / "TOKEN_SAVINGS.md"
+
+    memory_files = [
+        "PROJECT_CONTEXT.md",
+        "DECISIONS.md",
+        "NEXT_ACTIONS.md",
+        "graph.mmd",
+    ]
+
+    memory_text = ""
+
+    for file_name in memory_files:
+        path = project_dir / file_name
+        if path.exists():
+            memory_text += existing_text(path) + "\n"
+
+    estimated_context_tokens = estimate_tokens_from_text(memory_text)
+
+    session_log = project_dir / "SESSION_LOG.md"
+    session_log_text = existing_text(session_log)
+    sessions_captured = session_log_text.count("## Session Capsule")
+
+    estimated_repeated_context_avoided = estimated_context_tokens * max(sessions_captured - 1, 0)
+
+    content = f"""# Token Savings: {project_name}
+
+## Summary
+
+- Sessions captured: {sessions_captured}
+- Estimated current memory context tokens: {estimated_context_tokens}
+- Estimated repeated context avoided: {estimated_repeated_context_avoided} tokens
+- Last updated: {now}
+
+## Method
+
+Token estimates use a simple approximation:
+
+1 token ≈ 4 characters of English text
+
+Estimated repeated context avoided is calculated as:
+
+estimated current memory context tokens × resumed session count
+
+Where resumed session count is:
+
+sessions captured - 1
+
+## Notes
+
+This is an estimate, not an exact model-provider token count.
+
+It is useful for showing directional value: how much repeated project explanation ContextOS helps avoid.
+"""
+
+    token_file.write_text(content, encoding="utf-8")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--event", required=True)
@@ -476,6 +539,7 @@ Use SESSION_LOG.md, DECISIONS.md, NEXT_ACTIONS.md, and graph.mmd for project con
     append_unique_bullets(next_actions, extracted["actions"], now)
 
     update_project_context(project_context, cwd, now, summary, extracted)
+    update_token_savings(project_dir, project_name, now)
 
     append(graph, f"""
     B --> S{graph_node_id}["{event_name} - {now}"]
