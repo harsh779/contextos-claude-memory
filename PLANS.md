@@ -29,6 +29,7 @@
 3. Update README and setup/usage docs where useful.
 4. Run required validation.
 5. Commit and push `main`.
+6. Prepare v0.1.2 release notes and release checklist without tagging.
 
 ## Validation Sequence
 
@@ -43,3 +44,4 @@
 
 - Installer output could imply project memory is modified; messaging must explicitly say it is not deleted or overwritten.
 - PATH checks must distinguish updated, skipped, and already present.
+- v0.1.2 release docs must not imply the release tag already exists.

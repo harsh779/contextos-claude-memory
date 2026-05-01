@@ -350,6 +350,8 @@ Private files to avoid committing:
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Roadmap](docs/ROADMAP.md)
+- [v0.1.2 release notes](docs/RELEASE_NOTES_v0.1.2.md)
+- [v0.1.2 release checklist](docs/RELEASE_CHECKLIST_v0.1.2.md)
 - [v0.1.1 release notes](docs/RELEASE_NOTES_v0.1.1.md)
 - [v0.1.0 release notes](docs/RELEASE_NOTES_v0.1.0.md)
 
@@ -360,6 +362,10 @@ Private files to avoid committing:
 Latest release notes:
 
 [ContextOS v0.1.1 - Privacy Hardening](docs/RELEASE_NOTES_v0.1.1.md)
+
+Prepared release notes:
+
+[ContextOS v0.1.2 - Installer and Upgrade Reliability](docs/RELEASE_NOTES_v0.1.2.md)
 
 ---
 
