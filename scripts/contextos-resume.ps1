@@ -3,7 +3,15 @@ param(
     [string]$ProjectName
 )
 
-$vault = "C:\Users\Harsh\AI-Memory-Vault"
+function Get-ContextOSVaultPath {
+    if (![string]::IsNullOrWhiteSpace($env:CONTEXTOS_VAULT_PATH)) {
+        return $env:CONTEXTOS_VAULT_PATH
+    }
+
+    return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
+}
+
+$vault = Get-ContextOSVaultPath
 $projectsPath = Join-Path $vault "projects"
 $projectDir = Join-Path $projectsPath $ProjectName
 $packsDir = Join-Path $vault "context-packs"
