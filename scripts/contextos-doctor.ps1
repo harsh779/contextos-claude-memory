@@ -80,6 +80,12 @@ function Get-ContextOSVaultPath {
         return $env:CONTEXTOS_VAULT_PATH
     }
 
+    $userVault = [Environment]::GetEnvironmentVariable("CONTEXTOS_VAULT_PATH", "User")
+
+    if (![string]::IsNullOrWhiteSpace($userVault)) {
+        return $userVault
+    }
+
     $inferred = Get-InferredVaultPath
 
     if (![string]::IsNullOrWhiteSpace($inferred)) {
@@ -124,7 +130,8 @@ function Test-FileContains {
     return ($text -like "*$Pattern*")
 }
 
-$vaultEnvValue = $env:CONTEXTOS_VAULT_PATH
+$vaultProcessEnvValue = $env:CONTEXTOS_VAULT_PATH
+$vaultUserEnvValue = [Environment]::GetEnvironmentVariable("CONTEXTOS_VAULT_PATH", "User")
 $vault = Get-ContextOSVaultPath
 $scriptsDir = Join-Path $vault "scripts"
 $settingsPath = Join-Path $env:USERPROFILE ".claude\settings.json"
@@ -138,11 +145,13 @@ Write-Section "Version"
 Write-Check "OK" "ContextOS version" $ContextOSVersion
 
 Write-Section "Vault"
-if ([string]::IsNullOrWhiteSpace($vaultEnvValue)) {
+if (![string]::IsNullOrWhiteSpace($vaultProcessEnvValue)) {
+    Write-Check "OK" "CONTEXTOS_VAULT_PATH" "Process: $vaultProcessEnvValue"
+} elseif (![string]::IsNullOrWhiteSpace($vaultUserEnvValue)) {
+    Write-Check "OK" "CONTEXTOS_VAULT_PATH" "User: $vaultUserEnvValue"
+} else {
     Write-Check "WARN" "CONTEXTOS_VAULT_PATH" "Not set; resolved vault from install location or default"
     Add-Fix "Rerun install: powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1"
-} else {
-    Write-Check "OK" "CONTEXTOS_VAULT_PATH" $vaultEnvValue
 }
 
 Write-Check "OK" "Resolved vault path" $vault
