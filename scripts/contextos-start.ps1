@@ -1,5 +1,13 @@
 $ErrorActionPreference = "Stop"
 
+function Get-ContextOSVaultPath {
+    if (![string]::IsNullOrWhiteSpace($env:CONTEXTOS_VAULT_PATH)) {
+        return $env:CONTEXTOS_VAULT_PATH
+    }
+
+    return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
+}
+
 $inputJson = ($input | ForEach-Object { $_ }) -join "`n"
 
 if ([string]::IsNullOrWhiteSpace($inputJson)) {
@@ -12,7 +20,7 @@ if ([string]::IsNullOrWhiteSpace($inputJson)) {
 
 $hookData = $inputJson | ConvertFrom-Json
 
-$vault = "C:\Users\Harsh\AI-Memory-Vault"
+$vault = Get-ContextOSVaultPath
 $cwd = $hookData.cwd
 
 if ([string]::IsNullOrWhiteSpace($cwd)) {
@@ -97,7 +105,7 @@ $files = @(
 $context = "# ContextOS Retrieved Memory for $projectName`n`n"
 $context += "Working directory: $cwd`n`n"
 $context += "ContextOS memory vault path for this project: $projectDir`n"
-$context += "Do not assume memory files live inside the working repo. They live in AI-Memory-Vault unless explicitly configured otherwise.`n`n"
+$context += "Do not assume memory files live inside the working repo. They live in the ContextOS memory vault unless explicitly configured otherwise.`n`n"
 $context += "CRITICAL: Never create or edit PROJECT_CONTEXT.md, DECISIONS.md, NEXT_ACTIONS.md, SESSION_LOG.md, or graph.mmd inside the working directory. ContextOS memory files live only at: $projectDir. During active sessions, read ContextOS memory only. SessionEnd hook performs all memory updates after exit.`n`n"
 $context += "IMPORTANT CONTEXTOS RULE: During active Claude Code sessions, do not use Write, Edit, MultiEdit, or file-modification tools on ContextOS memory files. Do not directly edit PROJECT_CONTEXT.md, DECISIONS.md, NEXT_ACTIONS.md, SESSION_LOG.md, or graph.mmd. These files are updated automatically by the SessionEnd hook after the session exits. You may read them for context only unless the user explicitly asks you to edit them manually.`n`n"
 
