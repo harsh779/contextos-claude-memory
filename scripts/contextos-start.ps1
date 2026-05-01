@@ -103,6 +103,7 @@ $files = @(
 )
 
 $context = "# ContextOS Retrieved Memory for $projectName`n`n"
+$context += "ContextOS active: loaded memory for $projectName from $projectDir`n`n"
 $context += "Working directory: $cwd`n`n"
 $context += "ContextOS memory vault path for this project: $projectDir`n"
 $context += "Do not assume memory files live inside the working repo. They live in the ContextOS memory vault unless explicitly configured otherwise.`n`n"
