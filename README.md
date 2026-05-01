@@ -347,15 +347,16 @@ Private files to avoid committing:
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Roadmap](docs/ROADMAP.md)
+- [v0.1.1 release notes](docs/RELEASE_NOTES_v0.1.1.md)
 - [v0.1.0 release notes](docs/RELEASE_NOTES_v0.1.0.md)
 
 ---
 
 ## Release
 
-Latest release:
+Latest release notes:
 
-[ContextOS v0.1.0 — Local Claude Code Memory MVP](https://github.com/harsh779/contextos-claude-memory/releases/tag/v0.1.0)
+[ContextOS v0.1.1 - Privacy Hardening](docs/RELEASE_NOTES_v0.1.1.md)
 
 ---
 
