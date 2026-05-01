@@ -394,3 +394,13 @@ Planned future improvements:
 
 \- GitHub release packaging
 
+## Post-release documentation update
+
+After tagging v0.1.0, the README was updated with:
+
+- `contextos-status` demo output
+- `contextos-resume` demo output
+- visible `ContextOS active` startup proof line
+- token-savings estimate explanation
+- release link and expanded documentation links
+
