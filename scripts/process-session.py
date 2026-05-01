@@ -1,12 +1,21 @@
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
 
-VAULT = Path(r"C:\Users\Harsh\AI-Memory-Vault")
+
+def get_contextos_vault_path():
+    configured = os.environ.get("CONTEXTOS_VAULT_PATH")
+    if configured and configured.strip():
+        return Path(configured.strip())
+    return Path.home() / "AI-Memory-Vault"
+
+
+VAULT = get_contextos_vault_path()
 
 NOISE_PATTERNS = [
     "ACTIVE EVERY RESPONSE",
