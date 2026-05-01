@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "SilentlyContinue"
-$ContextOSVersion = "v0.1.3-dev"
+$ContextOSVersion = "v0.1.3"
 $script:WarnCount = 0
 $script:FailCount = 0
 $script:Fixes = New-Object System.Collections.Generic.List[string]

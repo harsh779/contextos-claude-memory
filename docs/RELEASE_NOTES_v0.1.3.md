@@ -1,12 +1,14 @@
 # ContextOS v0.1.3 - Doctor Command and Self-Healing Diagnostics
 
-Status: release notes prepared. Do not tag v0.1.3 until final release approval.
+Status: released after final checklist validation.
 
 ## Summary
 
 ContextOS v0.1.3 adds `contextos-doctor`, a diagnostic command for checking whether ContextOS is installed, upgraded, and hooked into Claude Code correctly.
 
 Doctor is read-only. It reports OK/WARN/FAIL checks and collects recommended fixes at the end.
+
+This release also includes a doctor environment detection fix so user-level `CONTEXTOS_VAULT_PATH` is recognized even when the current PowerShell process does not have the variable loaded.
 
 ## What Changed
 
@@ -51,6 +53,15 @@ Doctor checks:
 - Claude Code settings and hooks
 - raw transcript privacy status
 
+### User-Level Environment Detection
+
+Doctor checks both:
+
+- current process `CONTEXTOS_VAULT_PATH`
+- user-level `CONTEXTOS_VAULT_PATH`
+
+This avoids false warnings after install when the user-level environment variable is set but the current shell has not been restarted.
+
 ### Recommended Fixes
 
 Doctor collects recommended fixes and prints them at the end, including:
@@ -93,17 +104,31 @@ $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
 
 Only exact lowercase `true` enables raw transcript copying.
 
-## Validation Checklist
+## Install and Upgrade Note
 
-Before release, validate:
+After pulling v0.1.3, rerun:
 
-- PowerShell parse checks
-- Python compile checks
-- raw transcript privacy regression
-- direct doctor smoke test
-- installer temp-vault smoke test
-- installed doctor smoke test from temp vault
-- status smoke test and version check
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Then validate:
+
+```powershell
+contextos-status
+contextos-doctor
+```
+
+## Validation Evidence
+
+Validated before release tag:
+
+- PowerShell parse checks passed.
+- Python compile checks passed.
+- Raw transcript privacy regression passed.
+- Installed doctor smoke test passed.
+- `contextos-status --version` returned `ContextOS v0.1.3`.
+- `contextos-doctor` reported `ContextOS version: v0.1.3` and `Final Result`.
 
 ## Files Changed
 
@@ -120,6 +145,4 @@ Before release, validate:
 
 ## Release Status
 
-Do not tag v0.1.3 yet.
-
-Before tagging, complete `docs/RELEASE_CHECKLIST_v0.1.3.md`.
+Release checklist completed in `docs/RELEASE_CHECKLIST_v0.1.3.md`.
