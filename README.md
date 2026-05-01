@@ -157,6 +157,68 @@ contextos-open resume-customiser-repo
 
 ---
 
+---
+
+## How to know ContextOS is working
+
+Run:
+
+```powershell
+contextos-status
+```
+
+Example output:
+
+```text
+ContextOS Status
+================
+
+Vault path:                      C:\Users\<User>\AI-Memory-Vault
+Vault exists:                    Yes
+Scripts folder exists:           Yes
+Required scripts installed:      Yes
+Projects tracked:                6
+Context packs created:           5
+Token savings files:             1
+Estimated tokens avoided:        2150
+Claude settings found:           Yes
+Hooks configured:                Yes
+SessionStart hook:               Yes
+SessionEnd hook:                 Yes
+Last captured project:           contextos-auto-test
+Last capture time:               2026-05-01 16:43:36
+```
+
+Key checks:
+
+- `Vault exists: Yes` means the memory vault is present.
+- `Required scripts installed: Yes` means ContextOS scripts are installed.
+- `Hooks configured: Yes` means Claude Code settings include ContextOS hooks.
+- `SessionStart hook: Yes` means memory injection is configured.
+- `SessionEnd hook: Yes` means session capture is configured.
+- `Token savings files` means ContextOS has started tracking token-savings estimates.
+- `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
+
+## Token savings estimate
+
+ContextOS estimates token savings using a simple approximation:
+
+```text
+1 token ≈ 4 characters of English text
+```
+
+The estimate is not an exact model-provider token count. It is a practical directional metric that shows how much repeated project explanation ContextOS helps avoid.
+
+Example:
+
+```text
+Estimated current memory context tokens: 1,075
+Sessions captured: 3
+Estimated repeated context avoided: 2,150 tokens
+```
+
+This means ContextOS likely helped avoid re-explaining around 2,150 tokens of project context across resumed sessions.
+
 ## Current status
 
 Working MVP:
