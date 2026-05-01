@@ -1,6 +1,6 @@
 # ContextOS v0.1.2 - Installer and Upgrade Reliability
 
-Status: release notes prepared. Do not tag v0.1.2 until final release approval.
+Status: released after final checklist validation.
 
 ## Summary
 
@@ -110,7 +110,7 @@ contextos-status
 
 ## Validation Evidence
 
-Validated before release-prep commit:
+Validated before release tag:
 
 - PowerShell parse checks passed.
 - Python compile checks passed.
@@ -130,6 +130,4 @@ Validated before release-prep commit:
 
 ## Release Status
 
-Do not tag v0.1.2 yet.
-
-Before tagging, complete `docs/RELEASE_CHECKLIST_v0.1.2.md`.
+Release checklist completed in `docs/RELEASE_CHECKLIST_v0.1.2.md`.

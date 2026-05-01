@@ -194,7 +194,7 @@ Example output:
 ContextOS Status
 ================
 
-Version:                         v0.1.2-dev
+Version:                         v0.1.2
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -233,7 +233,7 @@ contextos-status --version
 Expected output:
 
 ```text
-ContextOS v0.1.2-dev
+ContextOS v0.1.2
 ```
 
 ### 2. Generate a restart pack
@@ -360,10 +360,6 @@ Private files to avoid committing:
 ## Release
 
 Latest release notes:
-
-[ContextOS v0.1.1 - Privacy Hardening](docs/RELEASE_NOTES_v0.1.1.md)
-
-Prepared release notes:
 
 [ContextOS v0.1.2 - Installer and Upgrade Reliability](docs/RELEASE_NOTES_v0.1.2.md)
 

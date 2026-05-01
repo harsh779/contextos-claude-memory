@@ -1,20 +1,20 @@
 # ContextOS v0.1.2 Release Checklist
 
-Do not create or push the `v0.1.2` tag until this checklist is complete and release approval is explicit.
+Final release approval received. The `v0.1.2` tag can be created after this checklist is committed and pushed.
 
 ## Scope Check
 
-- [ ] `install.ps1` prints the ContextOS version being installed.
-- [ ] `install.ps1` prints repo root and vault path.
-- [ ] `install.ps1` lists copied scripts.
-- [ ] `install.ps1` reports command wrappers created.
-- [ ] `install.ps1` reports `CONTEXTOS_VAULT_PATH` status.
-- [ ] `install.ps1` reports PATH update status.
-- [ ] `install.ps1` states rerunning after pull is safe.
-- [ ] `install.ps1` states existing project memory is not deleted or overwritten.
-- [ ] `install.ps1` states reruns update `AI-Memory-Vault\scripts\`.
-- [ ] `docs/UPGRADE.md` exists and covers standard and custom vault upgrades.
-- [ ] README links to `docs/UPGRADE.md`.
+- [x] `install.ps1` prints the ContextOS version being installed.
+- [x] `install.ps1` prints repo root and vault path.
+- [x] `install.ps1` lists copied scripts.
+- [x] `install.ps1` reports command wrappers created.
+- [x] `install.ps1` reports `CONTEXTOS_VAULT_PATH` status.
+- [x] `install.ps1` reports PATH update status.
+- [x] `install.ps1` states rerunning after pull is safe.
+- [x] `install.ps1` states existing project memory is not deleted or overwritten.
+- [x] `install.ps1` states reruns update `AI-Memory-Vault\scripts\`.
+- [x] `docs/UPGRADE.md` exists and covers standard and custom vault upgrades.
+- [x] README links to `docs/UPGRADE.md`.
 
 ## Required Validation
 
@@ -42,10 +42,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-raw-transcrip
 
 Expected:
 
-- [ ] unset `CONTEXTOS_COPY_RAW_TRANSCRIPTS` keeps copying disabled.
-- [ ] `CONTEXTOS_COPY_RAW_TRANSCRIPTS=True` keeps copying disabled.
-- [ ] `CONTEXTOS_COPY_RAW_TRANSCRIPTS=true` enables copying.
-- [ ] core memory files generate in all cases.
+- [x] unset `CONTEXTOS_COPY_RAW_TRANSCRIPTS` keeps copying disabled.
+- [x] `CONTEXTOS_COPY_RAW_TRANSCRIPTS=True` keeps copying disabled.
+- [x] `CONTEXTOS_COPY_RAW_TRANSCRIPTS=true` enables copying.
+- [x] core memory files generate in all cases.
 
 Run installer smoke test with a temp vault:
 
@@ -56,15 +56,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath $te
 
 Confirm:
 
-- [ ] `$tempVault` exists.
-- [ ] `$tempVault\scripts` exists.
-- [ ] `$tempVault\scripts\contextos-capture.ps1` exists.
-- [ ] `$tempVault\scripts\contextos-status.ps1` exists.
-- [ ] `$tempVault\scripts\process-session.py` exists.
-- [ ] `$tempVault\contextos-status.ps1` exists.
-- [ ] `$tempVault\contextos-find.ps1` exists.
-- [ ] `$tempVault\contextos-resume.ps1` exists.
-- [ ] `$tempVault\contextos-open.ps1` exists.
+- [x] `$tempVault` exists.
+- [x] `$tempVault\scripts` exists.
+- [x] `$tempVault\scripts\contextos-capture.ps1` exists.
+- [x] `$tempVault\scripts\contextos-status.ps1` exists.
+- [x] `$tempVault\scripts\process-session.py` exists.
+- [x] `$tempVault\contextos-status.ps1` exists.
+- [x] `$tempVault\contextos-find.ps1` exists.
+- [x] `$tempVault\contextos-resume.ps1` exists.
+- [x] `$tempVault\contextos-open.ps1` exists.
 
 Run status smoke test:
 
@@ -74,26 +74,26 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\contextos-status.p
 
 Confirm:
 
-- [ ] status output includes `Raw transcript copying`.
-- [ ] status output reports `v0.1.2-dev` before release tagging.
+- [x] status output includes `Raw transcript copying`.
+- [x] status output reports `v0.1.2`.
 
 ## Git Safety
 
-- [ ] `git status` is clean before tagging.
-- [ ] `git log --oneline -5` shows the installer reliability commit and release prep commit.
-- [ ] `git push origin main` has completed.
-- [ ] `main` is up to date with `origin/main`.
+- [x] `git status` is clean before tagging.
+- [x] `git log --oneline -5` shows the installer reliability commit and release prep commit.
+- [x] `git push origin main` has completed.
+- [x] `main` is up to date with `origin/main`.
 
 ## Release Tag Step
 
-Only after explicit approval:
+Approved:
 
 ```powershell
 git tag v0.1.2
 git push origin v0.1.2
 ```
 
-Post-tag:
+Post-tag verification:
 
 - [ ] Confirm GitHub shows the `v0.1.2` tag.
 - [ ] Update release notes or GitHub release body if needed.
