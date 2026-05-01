@@ -71,3 +71,121 @@ Recent session capsules.
 ### graph.mmd
 
 Text-based project map.
+
+## Checking ContextOS Status
+
+Run:
+
+```powershell
+contextos-status
+```
+
+This shows whether ContextOS is installed and working.
+
+Example:
+
+```text
+ContextOS Status
+================
+
+Vault path:                      C:\Users\<User>\AI-Memory-Vault
+Vault exists:                    Yes
+Scripts folder exists:           Yes
+Required scripts installed:      Yes
+Projects tracked:                6
+Context packs created:           5
+Token savings files:             1
+Estimated tokens avoided:        2150
+Claude settings found:           Yes
+Hooks configured:                Yes
+SessionStart hook:               Yes
+SessionEnd hook:                 Yes
+Last captured project:           contextos-auto-test
+Last capture time:               2026-05-01 16:43:36
+```
+
+How to read this:
+
+- `Vault exists: Yes` means the local memory vault is present.
+- `Required scripts installed: Yes` means the ContextOS scripts are installed.
+- `Hooks configured: Yes` means Claude Code settings include ContextOS hooks.
+- `SessionStart hook: Yes` means ContextOS can inject memory when Claude Code starts.
+- `SessionEnd hook: Yes` means ContextOS can capture memory when Claude Code exits.
+- `Projects tracked` shows how many project memory folders exist.
+- `Context packs created` shows how many restart packs have been generated.
+- `Token savings files` shows how many projects have token-savings tracking.
+- `Estimated tokens avoided` estimates repeated project context avoided.
+
+## Generating a Resume Pack
+
+Run:
+
+```powershell
+contextos-resume <project-name>
+```
+
+Example:
+
+```powershell
+contextos-resume resume-customiser-repo
+```
+
+This creates a restart pack in:
+
+```text
+AI-Memory-Vault/context-packs/
+```
+
+It also copies the pack to your clipboard.
+
+Use it in Claude, ChatGPT, Codex, or another assistant with this prompt:
+
+```text
+Use this ContextOS resume pack. Continue from Next Actions. Do not ask me to re-explain the project.
+```
+
+## Token Estimate in Resume Packs
+
+When `contextos-resume` runs, it shows a token estimate.
+
+Example:
+
+```text
+Resume pack characters: 4,800
+Estimated tokens: 1,200
+Estimated re-explanation avoided per resumed session: ~1,200 tokens
+```
+
+ContextOS uses this rough method:
+
+```text
+1 token ≈ 4 characters of English text
+```
+
+This is not an exact model-provider count. It is a practical estimate to show how much repeated explanation ContextOS helps avoid.
+
+## Project Token Savings
+
+After Claude Code sessions are processed, ContextOS creates:
+
+```text
+AI-Memory-Vault/projects/<project-name>/TOKEN_SAVINGS.md
+```
+
+This file shows:
+
+- sessions captured
+- estimated current memory context tokens
+- estimated repeated context avoided
+- last updated timestamp
+- calculation method
+
+Example:
+
+```text
+Sessions captured: 3
+Estimated current memory context tokens: 1,075
+Estimated repeated context avoided: 2,150 tokens
+```
+
+This means ContextOS likely helped avoid re-explaining around 2,150 tokens of project context across resumed sessions.
