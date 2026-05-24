@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ContextOSVersion = "v0.1.3"
+$ContextOSVersion = "v0.1.4-dev"
 
 function Write-Step {
     param([string]$Message)
@@ -106,6 +106,7 @@ foreach ($scriptFile in ($scriptFiles | Sort-Object Name)) {
 
 $wrapperMap = [ordered]@{
     "contextos-find.ps1" = "contextos-find.ps1"
+    "contextos-projects.ps1" = "contextos-projects.ps1"
     "contextos-resume.ps1" = "contextos-resume.ps1"
     "contextos-open.ps1" = "contextos-open.ps1"
     "contextos-status.ps1" = "contextos-status.ps1"
@@ -125,6 +126,7 @@ param(
     [string[]]`$ArgsList
 )
 
+`$env:CONTEXTOS_VAULT_PATH = "$vault"
 & "$targetPath" @ArgsList
 "@ | Set-Content $wrapperPath -Encoding UTF8
 
@@ -261,5 +263,6 @@ Write-Host ""
 Write-Host "Next recommended command:"
 Write-Host "  contextos-status"
 Write-Host "  contextos-doctor"
+Write-Host "  contextos-projects"
 Write-Host ""
 Write-Step "Install/upgrade complete."

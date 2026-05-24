@@ -4,6 +4,8 @@ ContextOS is designed as a local-first memory system.
 
 It stores project memory on your machine, not in a cloud database.
 
+ContextOS injects current project memory plus a compact vault-level `PROJECT_INDEX.md` summary by default. Set `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false` to disable cross-project startup injection for a sensitive session.
+
 ## What ContextOS Stores
 
 By default, ContextOS may store:

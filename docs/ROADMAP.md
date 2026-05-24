@@ -1,6 +1,6 @@
 # Roadmap
 
-## v1 — Done
+## v1 - Done
 
 - Global Claude Code hooks
 - Auto-bootstrap memory per project
@@ -8,28 +8,30 @@
 - SessionEnd capture
 - Basic session logging
 
-## v2 — Done
+## v2 - Done
 
 - Decision extraction
 - Next-action extraction
 - Project context update
 - Noise filtering
 
-## v2.1 — Done
+## v2.1 - Done
 
 - Hook-only updates
 - No manual mid-session memory edits
 - Cleaner extraction
 - Memory vault path clarity
 
-## v3 — Done
+## v3 - Done
 
 - Log compression
 - Global search
 - Resume pack creation
 
-## v4 — Planned
+## v4 - In Progress
 
+- Cross-project project index
+- Default-on cross-project startup injection
 - Chat/Cowork inbox capture
 - Folder watcher
 - Better semantic search

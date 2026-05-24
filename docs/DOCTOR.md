@@ -48,6 +48,8 @@ Doctor checks:
 - Python availability
 - Claude Code settings and hooks
 - raw transcript privacy status
+- cross-project memory status
+- project index availability
 - ContextOS version
 
 ## Reading OK, WARN, and FAIL
@@ -86,6 +88,12 @@ Run status:
 contextos-status
 ```
 
+Refresh the cross-project index:
+
+```powershell
+contextos-projects
+```
+
 Restart PowerShell after PATH changes.
 
 If Claude hooks are missing, rerun `install.ps1` and merge the printed Claude Code settings snippet into:
@@ -105,6 +113,24 @@ $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
 Only exact lowercase `true` enables raw transcript copying.
 
 If enabled, doctor prints a caution because duplicate raw Claude transcripts may be stored in the vault.
+
+## Cross-Project Memory Note
+
+Doctor reports cross-project startup injection as enabled by default.
+
+To disable it for a sensitive session:
+
+```powershell
+$env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
+```
+
+Only exact lowercase `false` disables it. Any other value, including unset, keeps it enabled.
+
+If `PROJECT_INDEX.md` is missing, run:
+
+```powershell
+contextos-projects
+```
 
 ## Upgrade Note
 

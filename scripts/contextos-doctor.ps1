@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "SilentlyContinue"
-$ContextOSVersion = "v0.1.3"
+$ContextOSVersion = "v0.1.4-dev"
 $script:WarnCount = 0
 $script:FailCount = 0
 $script:Fixes = New-Object System.Collections.Generic.List[string]
@@ -47,6 +47,10 @@ function Write-Check {
 
 function Test-CopyRawTranscriptsEnabled {
     return ($env:CONTEXTOS_COPY_RAW_TRANSCRIPTS -ceq "true")
+}
+
+function Test-CrossProjectMemoryEnabled {
+    return ($env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY -cne "false")
 }
 
 function Get-DefaultVaultPath {
@@ -181,8 +185,10 @@ $requiredScripts = @(
     "contextos-capture.ps1",
     "contextos-status.ps1",
     "contextos-find.ps1",
+    "contextos-projects.ps1",
     "contextos-resume.ps1",
     "contextos-open.ps1",
+    "contextos-doctor.ps1",
     "process-session.py",
     "compress-project-memory.py",
     "test-raw-transcript-privacy.ps1"
@@ -202,6 +208,7 @@ Write-Section "Wrappers"
 $wrappers = @(
     "contextos-status.ps1",
     "contextos-find.ps1",
+    "contextos-projects.ps1",
     "contextos-resume.ps1",
     "contextos-open.ps1",
     "contextos-doctor.ps1"
@@ -304,6 +311,22 @@ if (Test-CopyRawTranscriptsEnabled) {
     Write-Host "WARN  Raw transcript copying is enabled. This may store duplicate raw Claude transcripts in the vault."
 } else {
     Write-Check "OK" "Raw transcript copying" "Disabled"
+}
+
+Write-Section "Cross-Project Memory"
+$projectIndexPath = Join-Path $vault "PROJECT_INDEX.md"
+if (Test-Path $projectIndexPath) {
+    Write-Check "OK" "Project index exists" $projectIndexPath
+} else {
+    Write-Check "WARN" "Project index exists" "Missing"
+    Add-Fix "Refresh project index: contextos-projects"
+}
+
+if (Test-CrossProjectMemoryEnabled) {
+    Write-Check "OK" "Cross-project startup injection" "Enabled"
+} else {
+    Write-Check "WARN" "Cross-project startup injection" "Disabled"
+    Add-Fix "Enable default cross-project memory by removing CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false."
 }
 
 Write-Section "Recommended Fixes"

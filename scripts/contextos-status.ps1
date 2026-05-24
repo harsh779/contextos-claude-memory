@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "SilentlyContinue"
-$ContextOSVersion = "v0.1.3"
+$ContextOSVersion = "v0.1.4-dev"
 
 if ($ArgsList -contains "--version" -or $ArgsList -contains "-v") {
     Write-Host "ContextOS $ContextOSVersion"
@@ -21,6 +21,10 @@ function Get-ContextOSVaultPath {
 
 function Test-CopyRawTranscriptsEnabled {
     return ($env:CONTEXTOS_COPY_RAW_TRANSCRIPTS -ceq "true")
+}
+
+function Test-CrossProjectMemoryEnabled {
+    return ($env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY -cne "false")
 }
 
 function Write-Status {
@@ -44,6 +48,7 @@ $requiredScripts = @(
     "process-session.py",
     "compress-project-memory.py",
     "contextos-find.ps1",
+    "contextos-projects.ps1",
     "contextos-resume.ps1",
     "contextos-open.ps1",
     "contextos-doctor.ps1"
@@ -149,6 +154,9 @@ Write-Status "Context packs created:" $contextPackCount
 Write-Status "Token savings files:" @($tokenSavingsFiles).Count
 Write-Status "Estimated tokens avoided:" $totalEstimatedAvoided
 Write-Status "Raw transcript copying:" $(if (Test-CopyRawTranscriptsEnabled) { "Enabled" } else { "Disabled" })
+Write-Status "Cross-project memory:" $(if (Test-CrossProjectMemoryEnabled) { "Enabled" } else { "Disabled" })
+Write-Status "Project index exists:" $(if (Test-Path (Join-Path $vault "PROJECT_INDEX.md")) { "Yes" } else { "No" })
+Write-Status "Projects command available:" $(if (Test-Path (Join-Path $vault "contextos-projects.ps1")) { "Yes" } else { "No" })
 Write-Status "Doctor command available:" $(if (Test-Path (Join-Path $vault "contextos-doctor.ps1")) { "Yes" } else { "No" })
 Write-Status "Claude settings found:" $(if (Test-Path $settingsPath) { "Yes" } else { "No" })
 Write-Status "Hooks configured:" $hooksConfigured

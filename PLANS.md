@@ -1,53 +1,56 @@
-# v0.1.3 Doctor Command and Self-Healing Diagnostics Plan
+# v0.1.4 Cross-Project Awareness Plan
 
 ## Scope
 
-- Add `scripts/contextos-doctor.ps1`.
-- Install a root `contextos-doctor.ps1` wrapper through `install.ps1`.
-- Add doctor availability to `contextos-status`.
-- Add doctor docs, usage/upgrade notes, and v0.1.3 release prep docs.
-- Keep raw transcript privacy behavior unchanged.
+- Add a vault-level `PROJECT_INDEX.md` that summarizes tracked projects.
+- Add a `contextos-projects` command to refresh and display the project index.
+- Make default SessionStart behavior include current project memory plus compact cross-project awareness.
+- Add an opt-out for cross-project startup injection behind `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false`.
+- Surface cross-project status in `contextos-status` and `contextos-doctor`.
+- Update installer wrappers and user docs.
 
 ## Constraints
 
-- Do not create or push a v0.1.3 tag.
-- Keep `CONTEXTOS_COPY_RAW_TRANSCRIPTS` privacy-first and exact lowercase `true` only.
-- Do not delete, rename, or move existing docs.
-- Keep PowerShell output readable and Windows-first.
+- Do not weaken raw transcript privacy behavior.
+- Do not inject all project memory by default.
+- Keep injected cross-project context compact and summary-only.
+- Do not copy raw transcripts or session logs into the global index.
+- Avoid new dependencies.
 
 ## Unknowns
 
-- Final v0.1.3 release/tag timing: Not specified.
+- Final v0.1.4 release/tag timing: Not specified.
+- Whether cross-project context should later use semantic ranking: Not specified.
 
 ## Decisions
 
-- Use `v0.1.3-dev` in `install.ps1`, `contextos-status.ps1`, and `contextos-doctor.ps1`.
-- Let doctor infer the vault from installed script location when run from `AI-Memory-Vault\scripts\`.
-- Collect recommended fixes during checks and print them at the end.
+- Use `v0.1.4-dev` during implementation.
+- Store the global index at `AI-Memory-Vault\PROJECT_INDEX.md`.
+- Add `scripts/contextos-projects.ps1` as the explicit cross-project discovery command.
+- Enable startup cross-project injection by default. Disable it only when `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY` is exactly `false`.
+- Rebuild `PROJECT_INDEX.md` automatically on SessionEnd so it stays current after each completed Claude Code session. SessionStart and `contextos-projects` also refresh it as fallback/manual paths.
 
 ## Implementation Sequence
 
-1. Add `scripts/contextos-doctor.ps1`.
-2. Update `install.ps1` wrappers and next recommended commands.
-3. Update `scripts/contextos-status.ps1`.
-4. Add doctor docs and update README, usage, and upgrade docs.
-5. Add v0.1.3 release prep docs.
-6. Run required validation.
-7. Commit and push `main`.
+1. Add shared project-index generation logic to SessionEnd and SessionStart.
+2. Add `contextos-projects.ps1`.
+3. Update installer wrappers and script lists.
+4. Update status and doctor diagnostics.
+5. Update README and relevant docs.
+6. Run parse and smoke validation.
 
 ## Validation Sequence
 
-- PowerShell parse checks.
-- Python compile checks.
+- PowerShell parse checks for changed scripts.
+- Python compile checks for existing Python scripts.
 - Raw transcript privacy regression.
-- Direct doctor smoke test.
-- Installer temp-vault smoke test.
-- Installed doctor smoke test from temp vault.
-- Status smoke test and version check.
-- Git diff/status review.
+- `contextos-projects` temp-vault smoke test.
+- `contextos-start` default mode smoke test confirms no cross-project section unless enabled.
+- `contextos-start` enabled mode smoke test confirms compact cross-project context appears.
+- Installer temp-vault smoke test confirms wrapper creation.
 
 ## Risks
 
-- Doctor must not fail just because one diagnostic check fails.
-- Temp-vault wrapper execution must resolve the temp vault, not the user's default vault.
-- Diagnostics must provide actionable fixes without modifying user files.
+- Cross-project context could leak unrelated project details if enabled too broadly.
+- Large vaults could produce bloated startup context if index generation is not capped.
+- Existing users need to rerun `install.ps1` before the new command wrapper exists in their vault.

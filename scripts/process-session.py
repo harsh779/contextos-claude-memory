@@ -178,7 +178,7 @@ def read_transcript_items(transcript_path, max_items=30):
         return []
 
     items = []
-    lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    lines = path.read_text(encoding="utf-8-sig", errors="ignore").splitlines()
 
     for line in lines[-220:]:
         try:
@@ -434,6 +434,128 @@ It is useful for showing directional value: how much repeated project explanatio
 
     token_file.write_text(content, encoding="utf-8")
 
+
+def useful_lines(path, max_lines=4):
+    if not path.exists():
+        return []
+
+    lines = []
+
+    for raw_line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            continue
+
+        if line.startswith("#"):
+            continue
+
+        lower = line.lower()
+
+        if "ai-memory-vault" in lower or lower.startswith("working directory"):
+            continue
+
+        if line.startswith("Auto-created by ContextOS"):
+            continue
+
+        if line.startswith("New project memory created automatically"):
+            continue
+
+        if line.startswith("Use SESSION_LOG.md"):
+            continue
+
+        if line.startswith("- No locked decisions captured yet"):
+            continue
+
+        if line.startswith("1. Inspect current repo/project state"):
+            continue
+
+        if line.startswith("2. Identify active goal"):
+            continue
+
+        if line.startswith("3. Continue from latest Claude Code session context"):
+            continue
+
+        if re.match(r"^[A-Za-z]:\\", line):
+            continue
+
+        lines.append(line)
+
+    return lines[-max_lines:]
+
+
+def latest_memory_update(project_dir):
+    candidates = []
+
+    for path in project_dir.rglob("*"):
+        if not path.is_file():
+            continue
+
+        parts = {part.lower() for part in path.parts}
+
+        if {"raw", "sessions", "archives"} & parts:
+            continue
+
+        if path.suffix.lower() not in {".md", ".mmd"}:
+            continue
+
+        candidates.append(path)
+
+    if not candidates:
+        return project_dir.stat().st_mtime
+
+    return max(path.stat().st_mtime for path in candidates)
+
+
+def update_project_index():
+    projects_dir = VAULT / "projects"
+    index_path = VAULT / "PROJECT_INDEX.md"
+
+    projects_dir.mkdir(parents=True, exist_ok=True)
+
+    projects = [path for path in projects_dir.iterdir() if path.is_dir()]
+    projects.sort(key=latest_memory_update, reverse=True)
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    content = [
+        "# ContextOS Project Index",
+        "",
+        f"Generated: {now}",
+        "",
+        "This summary index is generated from project memory files. It does not include raw transcripts or full session logs.",
+        "",
+    ]
+
+    if not projects:
+        content.append("No projects tracked yet.")
+
+    for project in projects:
+        last_updated = datetime.fromtimestamp(latest_memory_update(project)).strftime("%Y-%m-%d %H:%M:%S")
+        summary_lines = []
+        summary_lines.extend(useful_lines(project / "PROJECT_CONTEXT.md", 3))
+        summary_lines.extend(useful_lines(project / "DECISIONS.md", 3))
+        summary_lines.extend(useful_lines(project / "NEXT_ACTIONS.md", 3))
+
+        content.extend(
+            [
+                f"## {project.name}",
+                "",
+                f"- Last updated: {last_updated}",
+                f"- Memory path: {project}",
+            ]
+        )
+
+        if summary_lines:
+            content.append("- Summary signals:")
+            for line in summary_lines[:6]:
+                content.append(f"  - {line}")
+        else:
+            content.append("- Summary signals: None captured yet.")
+
+        content.append("")
+
+    index_path.write_text("\n".join(content).rstrip() + "\n", encoding="utf-8")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--event", required=True)
@@ -540,6 +662,7 @@ Use SESSION_LOG.md, DECISIONS.md, NEXT_ACTIONS.md, and graph.mmd for project con
 
     update_project_context(project_context, cwd, now, summary, extracted)
     update_token_savings(project_dir, project_name, now)
+    update_project_index()
 
     append(graph, f"""
     B --> S{graph_node_id}["{event_name} - {now}"]

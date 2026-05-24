@@ -91,4 +91,13 @@ After install or upgrade, run:
 contextos-status
 ```
 
-This confirms the vault path, installed scripts, Claude Code hooks, and raw transcript copying status.
+This confirms the vault path, installed scripts, Claude Code hooks, raw transcript copying status, and cross-project memory status.
+
+Then run:
+
+```powershell
+contextos-doctor
+contextos-projects
+```
+
+`contextos-projects` creates or refreshes `AI-Memory-Vault\PROJECT_INDEX.md`.

@@ -1,4 +1,4 @@
-\# Configuration
+# Configuration
 
 
 
@@ -6,7 +6,7 @@ ContextOS is designed to work with sensible defaults, but most paths and behavio
 
 
 
-\## Vault Path
+## Vault Path
 
 
 
@@ -42,6 +42,38 @@ projects/<project-name>/raw/<timestamp>-transcript.jsonl
 ```
 
 When disabled, ContextOS still reads the original `transcript_path` from Claude Code event metadata so `PROJECT_CONTEXT.md`, `SESSION_LOG.md`, `DECISIONS.md`, `NEXT_ACTIONS.md`, `TOKEN_SAVINGS.md`, and `graph.mmd` continue to update.
+
+## Cross-Project Memory
+
+ContextOS creates project memory per folder by default. It can also maintain a vault-level project index:
+
+```text
+PROJECT_INDEX.md
+```
+
+Refresh and view it with:
+
+```powershell
+contextos-projects
+```
+
+Freshness model:
+
+- SessionEnd rebuilds `PROJECT_INDEX.md` after each completed Claude Code session.
+- SessionStart refreshes it before returning startup context.
+- `contextos-projects` refreshes it manually when you want to inspect it.
+
+Claude startup injection includes compact cross-project memory by default.
+
+To disable it for a sensitive session:
+
+```powershell
+$env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
+```
+
+Only the exact lowercase value `false` disables cross-project startup injection. Any other value, including unset, keeps it enabled.
+
+When enabled, ContextOS injects a compact summary of `PROJECT_INDEX.md` during SessionStart. The index is generated from summary memory files and excludes raw transcripts, raw copies, and full session logs.
 
 ## Token Savings Configuration
 
@@ -103,6 +135,8 @@ Estimated repeated context avoided: 2,150 tokens
 Token savings files:      1
 Estimated tokens avoided: 2150
 Raw transcript copying:   Disabled
+Cross-project memory:     Enabled
+Project index exists:     Yes
 ```
 
 ### Resume pack token estimate

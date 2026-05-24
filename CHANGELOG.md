@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.4-dev - In Progress
+
+### Added
+- `contextos-projects` command to refresh and print a vault-level `PROJECT_INDEX.md`.
+- `PROJECT_INDEX.md` summary index across tracked projects.
+- Default-on cross-project startup injection, disabled only with `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false`.
+- Status and doctor diagnostics for cross-project memory and project index availability.
+- Cross-project memory documentation.
+
+### Changed
+- `contextos-start.ps1` refreshes the project index during SessionStart.
+- `process-session.py` refreshes the project index after SessionEnd processing.
+- Documentation now defines the freshness model: SessionEnd is primary, SessionStart and `contextos-projects` are fallback/manual refresh paths.
+- Installer creates a `contextos-projects.ps1` wrapper.
+
 ## 0.1.3 — 2026-05-01
 
 ### Added

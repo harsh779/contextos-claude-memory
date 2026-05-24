@@ -63,6 +63,7 @@ Open a new PowerShell window, then run:
 contextos-status
 contextos-status --version
 contextos-doctor
+contextos-projects
 contextos-find "test"
 contextos-resume contextos-auto-test
 contextos-open contextos-auto-test
@@ -97,6 +98,7 @@ ContextOS solves this by keeping a local, project-level memory system outside th
 | Next-action extraction | Pulls follow-up work into `NEXT_ACTIONS.md` |
 | Restart packs | Generates compact context packs for future AI sessions |
 | Search | Lets you search across prior project memory |
+| Cross-project index | Maintains a summary index of tracked projects for explicit recall |
 | Status check | Shows whether ContextOS is installed, hooked, and working |
 | Doctor diagnostics | Checks vault health, installed scripts, PATH, Python, Claude hooks, and privacy state |
 | Version check | Prints the installed ContextOS version |
@@ -133,6 +135,7 @@ Future sessions can restart from a compact context pack
 
 ```text
 AI-Memory-Vault/
+  PROJECT_INDEX.md
   projects/
     project-name/
       PROJECT_CONTEXT.md
@@ -167,6 +170,14 @@ Run install diagnostics:
 ```powershell
 contextos-doctor
 ```
+
+Refresh and view the cross-project index:
+
+```powershell
+contextos-projects
+```
+
+`PROJECT_INDEX.md` is rebuilt automatically on SessionEnd after ContextOS processes a completed session. `contextos-projects` is the manual refresh/inspection command.
 
 Search memory:
 
@@ -204,7 +215,7 @@ Example output:
 ContextOS Status
 ================
 
-Version:                         v0.1.3
+Version:                         v0.1.4-dev
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -214,6 +225,9 @@ Context packs created:           5
 Token savings files:             1
 Estimated tokens avoided:        2150
 Raw transcript copying:          Disabled
+Cross-project memory:            Enabled
+Project index exists:            Yes
+Projects command available:      Yes
 Doctor command available:        Yes
 Claude settings found:           Yes
 Hooks configured:                Yes
@@ -234,6 +248,9 @@ Key checks:
 - `Token savings files` means ContextOS has started tracking token-savings estimates.
 - `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
 - `Raw transcript copying: Disabled` means ContextOS will process Claude's original transcript path but will not duplicate raw transcript files into the vault.
+- `Cross-project memory: Enabled` means Claude startup context includes a compact vault-level project index alongside the current project memory.
+- `Project index exists: Yes` means ContextOS has created the vault-level `PROJECT_INDEX.md` summary.
+- `Projects command available: Yes` means the cross-project index command wrapper is installed in the vault.
 - `Doctor command available: Yes` means the diagnostic command wrapper is installed in the vault.
 
 Version-only check:
@@ -245,7 +262,7 @@ contextos-status --version
 Expected output:
 
 ```text
-ContextOS v0.1.3
+ContextOS v0.1.4-dev
 ```
 
 ### 2. Generate a restart pack
@@ -316,6 +333,7 @@ Working MVP:
 - next-action extraction
 - log compression
 - memory search
+- cross-project project index
 - restart pack generation
 - status command
 - doctor diagnostics command
@@ -344,6 +362,14 @@ Raw Claude Code transcript copying is disabled by default. ContextOS still reads
 $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
 ```
 
+Cross-project startup injection is enabled by default. ContextOS includes a compact `PROJECT_INDEX.md` summary so Claude can see related prior project context.
+
+To disable cross-project startup memory for a sensitive session, set:
+
+```powershell
+$env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
+```
+
 Private files to avoid committing:
 
 - raw transcripts
@@ -362,6 +388,7 @@ Private files to avoid committing:
 - [Usage](docs/USAGE.md)
 - [Upgrade guide](docs/UPGRADE.md)
 - [Doctor diagnostics](docs/DOCTOR.md)
+- [Cross-project memory](docs/CROSS_PROJECT_MEMORY.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)

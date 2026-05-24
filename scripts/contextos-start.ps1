@@ -8,6 +8,119 @@ function Get-ContextOSVaultPath {
     return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
 }
 
+function Test-CrossProjectMemoryEnabled {
+    return ($env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY -cne "false")
+}
+
+function Limit-Text {
+    param(
+        [string]$Text,
+        [int]$MaxChars
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return ""
+    }
+
+    if ($Text.Length -le $MaxChars) {
+        return $Text
+    }
+
+    return $Text.Substring(0, $MaxChars)
+}
+
+function Get-UsefulLines {
+    param(
+        [string]$Path,
+        [int]$MaxLines = 4
+    )
+
+    if (!(Test-Path $Path)) {
+        return @()
+    }
+
+    $lines = Get-Content $Path -ErrorAction SilentlyContinue |
+        ForEach-Object { $_.Trim() } |
+        Where-Object {
+            ![string]::IsNullOrWhiteSpace($_) -and
+            !$_.StartsWith("#") -and
+            $_ -notlike "Working Directory*" -and
+            $_ -notlike "*AI-Memory-Vault*" -and
+            $_ -notlike "Auto-created by ContextOS*" -and
+            $_ -notlike "New project memory created automatically*" -and
+            $_ -notlike "Use SESSION_LOG.md*" -and
+            $_ -notlike "- No locked decisions captured yet*" -and
+            $_ -notlike "1. Inspect current repo/project state*" -and
+            $_ -notlike "2. Identify active goal*" -and
+            $_ -notlike "3. Continue from latest Claude Code session context*" -and
+            $_ -notmatch "^[A-Za-z]:\\"
+        } |
+        Select-Object -Last $MaxLines
+
+    return @($lines)
+}
+
+function Update-ProjectIndex {
+    param(
+        [string]$VaultPath
+    )
+
+    $projectsPath = Join-Path $VaultPath "projects"
+    $indexPath = Join-Path $VaultPath "PROJECT_INDEX.md"
+
+    if (!(Test-Path $projectsPath)) {
+        return $indexPath
+    }
+
+    $projects = Get-ChildItem $projectsPath -Directory -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $content = "# ContextOS Project Index`n`n"
+    $content += "Generated: $timestamp`n`n"
+    $content += "This summary index is generated from project memory files. It does not include raw transcripts or full session logs.`n`n"
+
+    foreach ($project in $projects) {
+        $projectContext = Join-Path $project.FullName "PROJECT_CONTEXT.md"
+        $decisions = Join-Path $project.FullName "DECISIONS.md"
+        $nextActions = Join-Path $project.FullName "NEXT_ACTIONS.md"
+
+        $latest = Get-ChildItem $project.FullName -File -Include "*.md","*.mmd" -Recurse -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.FullName -notlike "*\raw\*" -and
+                $_.FullName -notlike "*\sessions\*" -and
+                $_.FullName -notlike "*\archives\*"
+            } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+        $lastUpdated = if ($latest) { $latest.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss") } else { $project.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss") }
+
+        $content += "## $($project.Name)`n`n"
+        $content += "- Last updated: $lastUpdated`n"
+        $content += "- Memory path: $($project.FullName)`n"
+
+        $summaryLines = @()
+        $summaryLines += Get-UsefulLines -Path $projectContext -MaxLines 3
+        $summaryLines += Get-UsefulLines -Path $decisions -MaxLines 3
+        $summaryLines += Get-UsefulLines -Path $nextActions -MaxLines 3
+
+        if ($summaryLines.Count -gt 0) {
+            $content += "- Summary signals:`n"
+            foreach ($line in ($summaryLines | Select-Object -First 6)) {
+                $content += "  - $line`n"
+            }
+        } else {
+            $content += "- Summary signals: None captured yet.`n"
+        }
+
+        $content += "`n"
+    }
+
+    $content | Set-Content $indexPath -Encoding UTF8
+    return $indexPath
+}
+
 $inputJson = ($input | ForEach-Object { $_ }) -join "`n"
 
 if ([string]::IsNullOrWhiteSpace($inputJson)) {
@@ -31,6 +144,7 @@ $projectName = Split-Path $cwd -Leaf
 $projectDir = Join-Path $vault "projects\$projectName"
 $rawDir = Join-Path $projectDir "raw"
 $sessionsDir = Join-Path $projectDir "sessions"
+$projectIndex = Join-Path $vault "PROJECT_INDEX.md"
 
 New-Item -ItemType Directory -Force -Path $projectDir | Out-Null
 New-Item -ItemType Directory -Force -Path $rawDir | Out-Null
@@ -95,6 +209,8 @@ graph TD
 "@ | Set-Content $graph -Encoding UTF8
 }
 
+$projectIndex = Update-ProjectIndex -VaultPath $vault
+
 $files = @(
     "PROJECT_CONTEXT.md",
     "DECISIONS.md",
@@ -118,6 +234,22 @@ foreach ($file in $files) {
             $text = $text.Substring([Math]::Max(0, $text.Length - 2500))
         }
         $context += "`n## $file`n$text`n"
+    }
+}
+
+if ((Test-CrossProjectMemoryEnabled) -and (Test-Path $projectIndex)) {
+    if ($context.Length -gt 6000) {
+        $context = $context.Substring(0, 6000)
+        $context += "`n`n[Current project context truncated before cross-project index.]`n"
+    }
+
+    $indexText = Get-Content $projectIndex -Raw -ErrorAction SilentlyContinue
+    $indexText = Limit-Text -Text $indexText -MaxChars 3000
+
+    if (![string]::IsNullOrWhiteSpace($indexText)) {
+        $context += "`n## Cross-Project Awareness`n"
+        $context += "Cross-project memory is enabled by default. Use this vault-level index to identify possibly related prior work. Do not assume unrelated project details apply to the current project without user confirmation. To disable this startup section, set CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false.`n`n"
+        $context += $indexText
     }
 }
 
