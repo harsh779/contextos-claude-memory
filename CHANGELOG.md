@@ -14,6 +14,7 @@
 - `process-session.py` refreshes the project index after SessionEnd processing.
 - Documentation now defines the freshness model: SessionEnd is primary, SessionStart and `contextos-projects` are fallback/manual refresh paths.
 - Project index summaries now prefer stable purpose/status, decisions, and next actions while filtering conversational chat fragments and tool-output noise.
+- Project index extraction preserves high-value technical signals from latest status, such as deploy/build/database/schema errors, while leaving bootstrap-only projects as `None captured yet`.
 - Installer creates a `contextos-projects.ps1` wrapper.
 
 ## 0.1.3 — 2026-05-01
