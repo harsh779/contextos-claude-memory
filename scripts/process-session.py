@@ -435,53 +435,131 @@ It is useful for showing directional value: how much repeated project explanatio
     token_file.write_text(content, encoding="utf-8")
 
 
-def useful_lines(path, max_lines=4):
+def normalize_index_line(line):
+    line = str(line or "").strip()
+    line = re.sub(r"^\s*[-*]\s+", "", line)
+    line = re.sub(r"^\s*\d+\.\s+", "", line)
+    line = re.sub(r"^(decision|decided|next action|todo|to-do):\s*", "", line, flags=re.I)
+    return line.strip()
+
+
+def is_index_noise(line):
+    clean = normalize_index_line(line)
+
+    if not clean:
+        return True
+
+    lower = clean.lower()
+
+    if clean == "---":
+        return True
+
+    if len(clean) > 220:
+        return True
+
+    if clean.startswith("#"):
+        return True
+
+    if clean.startswith("```"):
+        return True
+
+    if "```" in clean:
+        return True
+
+    if re.match(r"^[A-Za-z]:\\", clean):
+        return True
+
+    noise_patterns = [
+        "auto-created by contextos",
+        "new project memory created automatically",
+        "use session_log.md",
+        "no locked decisions captured yet",
+        "inspect current repo/project state",
+        "identify active goal",
+        "continue from latest claude code session context",
+        "no useful summary captured",
+        "none auto-detected",
+        "do not respond to these messages",
+        "local-command-caveat",
+        "you're out of extra usage",
+        "let me ",
+        "can you ",
+        "can ",
+        "but you ",
+        "you ",
+        "yes,",
+        "clicking ",
+        "making the fix",
+        "aim unclear",
+        "want to ",
+        "i'll ",
+        "i will ",
+        "i can ",
+        "now ",
+        "now update ",
+        "now run ",
+        "wait for ",
+        "checking required files",
+        "check the vault files",
+        "let me check",
+        "expected ",
+        "click ",
+        "run npm",
+        "run git",
+        "build taking time",
+    ]
+
+    return any(pattern in lower for pattern in noise_patterns)
+
+
+def clean_project_context_lines(path, max_lines=2):
     if not path.exists():
         return []
 
     lines = []
 
     for raw_line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line = raw_line.strip()
+        if raw_line.strip().startswith("## Latest Auto-Captured Status"):
+            break
 
-        if not line:
+        if is_index_noise(raw_line):
             continue
 
-        if line.startswith("#"):
+        line = normalize_index_line(raw_line)
+
+        if line not in lines:
+            lines.append(line)
+
+    return lines[:max_lines]
+
+
+def clean_index_lines(path, max_lines=4, prefix=""):
+    if not path.exists():
+        return []
+
+    lines = []
+
+    for raw_line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        if is_index_noise(raw_line):
             continue
 
-        lower = line.lower()
+        line = normalize_index_line(raw_line)
 
-        if "ai-memory-vault" in lower or lower.startswith("working directory"):
-            continue
+        if prefix:
+            line = f"{prefix}{line}"
 
-        if line.startswith("Auto-created by ContextOS"):
-            continue
+        if line not in lines:
+            lines.append(line)
 
-        if line.startswith("New project memory created automatically"):
-            continue
+    return lines[:max_lines]
 
-        if line.startswith("Use SESSION_LOG.md"):
-            continue
 
-        if line.startswith("- No locked decisions captured yet"):
-            continue
-
-        if line.startswith("1. Inspect current repo/project state"):
-            continue
-
-        if line.startswith("2. Identify active goal"):
-            continue
-
-        if line.startswith("3. Continue from latest Claude Code session context"):
-            continue
-
-        if re.match(r"^[A-Za-z]:\\", line):
-            continue
-
-        lines.append(line)
-
-    return lines[-max_lines:]
+def project_index_signals(project):
+    signals = []
+    signals.extend([f"Status: {line}" for line in clean_project_context_lines(project / "PROJECT_CONTEXT.md", 2)])
+    signals.extend(clean_index_lines(project / "DECISIONS.md", 2, "Decision: "))
+    signals.extend(clean_index_lines(project / "NEXT_ACTIONS.md", 2, "Next: "))
+    return signals[:6]
 
 
 def latest_memory_update(project_dir):
@@ -531,10 +609,7 @@ def update_project_index():
 
     for project in projects:
         last_updated = datetime.fromtimestamp(latest_memory_update(project)).strftime("%Y-%m-%d %H:%M:%S")
-        summary_lines = []
-        summary_lines.extend(useful_lines(project / "PROJECT_CONTEXT.md", 3))
-        summary_lines.extend(useful_lines(project / "DECISIONS.md", 3))
-        summary_lines.extend(useful_lines(project / "NEXT_ACTIONS.md", 3))
+        summary_lines = project_index_signals(project)
 
         content.extend(
             [

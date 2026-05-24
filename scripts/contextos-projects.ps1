@@ -12,35 +12,161 @@ function Get-ContextOSVaultPath {
     return (Join-Path $env:USERPROFILE "AI-Memory-Vault")
 }
 
-function Get-UsefulLines {
+function Normalize-IndexLine {
+    param([string]$Line)
+
+    if ([string]::IsNullOrWhiteSpace($Line)) {
+        return ""
+    }
+
+    $clean = $Line.Trim()
+    $clean = $clean -replace "^\s*[-*]\s+", ""
+    $clean = $clean -replace "^\s*\d+\.\s+", ""
+    $clean = $clean -replace "^(?i)(decision|decided|next action|todo|to-do):\s*", ""
+    return $clean.Trim()
+}
+
+function Test-IndexNoiseLine {
+    param([string]$Line)
+
+    if ([string]::IsNullOrWhiteSpace($Line)) { return $true }
+
+    $clean = Normalize-IndexLine $Line
+    $lower = $clean.ToLower()
+
+    if ([string]::IsNullOrWhiteSpace($clean)) { return $true }
+    if ($clean -eq "---") { return $true }
+    if ($clean.Length -gt 220) { return $true }
+    if ($clean.StartsWith("#")) { return $true }
+    if ($clean.StartsWith('```')) { return $true }
+    if ($clean.Contains('```')) { return $true }
+    if ($clean -match "^[A-Za-z]:\\") { return $true }
+
+    $noisePatterns = @(
+        "auto-created by contextos",
+        "new project memory created automatically",
+        "use session_log.md",
+        "no locked decisions captured yet",
+        "inspect current repo/project state",
+        "identify active goal",
+        "continue from latest claude code session context",
+        "no useful summary captured",
+        "none auto-detected",
+        "do not respond to these messages",
+        "local-command-caveat",
+        "you're out of extra usage",
+        "let me ",
+        "can you ",
+        "can ",
+        "but you ",
+        "you ",
+        "yes,",
+        "clicking ",
+        "making the fix",
+        "aim unclear",
+        "want to ",
+        "i'll ",
+        "i will ",
+        "i can ",
+        "now ",
+        "now update ",
+        "now run ",
+        "wait for ",
+        "checking required files",
+        "check the vault files",
+        "let me check",
+        "expected ",
+        "click ",
+        "run npm",
+        "run git",
+        "build taking time"
+    )
+
+    foreach ($pattern in $noisePatterns) {
+        if ($lower.Contains($pattern)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-CleanProjectContextLines {
     param(
         [string]$Path,
-        [int]$MaxLines = 4
+        [int]$MaxLines = 2
     )
 
     if (!(Test-Path $Path)) {
         return @()
     }
 
-    $lines = Get-Content $Path -ErrorAction SilentlyContinue |
-        ForEach-Object { $_.Trim() } |
-        Where-Object {
-            ![string]::IsNullOrWhiteSpace($_) -and
-            !$_.StartsWith("#") -and
-            $_ -notlike "Working Directory*" -and
-            $_ -notlike "*AI-Memory-Vault*" -and
-            $_ -notlike "Auto-created by ContextOS*" -and
-            $_ -notlike "New project memory created automatically*" -and
-            $_ -notlike "Use SESSION_LOG.md*" -and
-            $_ -notlike "- No locked decisions captured yet*" -and
-            $_ -notlike "1. Inspect current repo/project state*" -and
-            $_ -notlike "2. Identify active goal*" -and
-            $_ -notlike "3. Continue from latest Claude Code session context*" -and
-            $_ -notmatch "^[A-Za-z]:\\"
-        } |
-        Select-Object -Last $MaxLines
+    $stableLines = @()
 
-    return @($lines)
+    foreach ($line in (Get-Content $Path -ErrorAction SilentlyContinue)) {
+        if ($line -like "## Latest Auto-Captured Status*") {
+            break
+        }
+
+        if (Test-IndexNoiseLine $line) {
+            continue
+        }
+
+        $clean = Normalize-IndexLine $line
+
+        if ($stableLines -notcontains $clean) {
+            $stableLines += $clean
+        }
+    }
+
+    return @($stableLines | Select-Object -First $MaxLines)
+}
+
+function Get-CleanIndexLines {
+    param(
+        [string]$Path,
+        [int]$MaxLines = 4,
+        [string]$Prefix = ""
+    )
+
+    if (!(Test-Path $Path)) {
+        return @()
+    }
+
+    $lines = @()
+
+    foreach ($line in (Get-Content $Path -ErrorAction SilentlyContinue)) {
+        if (Test-IndexNoiseLine $line) {
+            continue
+        }
+
+        $clean = Normalize-IndexLine $line
+
+        if (![string]::IsNullOrWhiteSpace($Prefix)) {
+            $clean = "$Prefix$clean"
+        }
+
+        if ($lines -notcontains $clean) {
+            $lines += $clean
+        }
+    }
+
+    return @($lines | Select-Object -First $MaxLines)
+}
+
+function Get-ProjectIndexSignals {
+    param([string]$ProjectDir)
+
+    $projectContext = Join-Path $ProjectDir "PROJECT_CONTEXT.md"
+    $decisions = Join-Path $ProjectDir "DECISIONS.md"
+    $nextActions = Join-Path $ProjectDir "NEXT_ACTIONS.md"
+
+    $signals = @()
+    $signals += Get-CleanProjectContextLines -Path $projectContext -MaxLines 2 | ForEach-Object { "Status: $_" }
+    $signals += Get-CleanIndexLines -Path $decisions -MaxLines 2 -Prefix "Decision: "
+    $signals += Get-CleanIndexLines -Path $nextActions -MaxLines 2 -Prefix "Next: "
+
+    return @($signals | Select-Object -First 6)
 }
 
 function Update-ProjectIndex {
@@ -68,10 +194,6 @@ function Update-ProjectIndex {
     }
 
     foreach ($project in $projects) {
-        $projectContext = Join-Path $project.FullName "PROJECT_CONTEXT.md"
-        $decisions = Join-Path $project.FullName "DECISIONS.md"
-        $nextActions = Join-Path $project.FullName "NEXT_ACTIONS.md"
-
         $latest = Get-ChildItem $project.FullName -File -Include "*.md","*.mmd" -Recurse -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.FullName -notlike "*\raw\*" -and
@@ -87,10 +209,7 @@ function Update-ProjectIndex {
         $content += "- Last updated: $lastUpdated`n"
         $content += "- Memory path: $($project.FullName)`n"
 
-        $summaryLines = @()
-        $summaryLines += Get-UsefulLines -Path $projectContext -MaxLines 3
-        $summaryLines += Get-UsefulLines -Path $decisions -MaxLines 3
-        $summaryLines += Get-UsefulLines -Path $nextActions -MaxLines 3
+        $summaryLines = Get-ProjectIndexSignals -ProjectDir $project.FullName
 
         if ($summaryLines.Count -gt 0) {
             $content += "- Summary signals:`n"
