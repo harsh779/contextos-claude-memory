@@ -154,6 +154,104 @@ function Get-CleanIndexLines {
     return @($lines | Select-Object -First $MaxLines)
 }
 
+function Test-TechnicalSignalLine {
+    param([string]$Line)
+
+    if (Test-IndexNoiseLine $Line) {
+        return $false
+    }
+
+    $clean = Normalize-IndexLine $Line
+    $lower = $clean.ToLower()
+
+    $technicalPatterns = @(
+        ".prisma",
+        "prisma",
+        "hostinger",
+        "deploy",
+        "build",
+        "neon",
+        "database",
+        "db ",
+        "api ",
+        "route",
+        "schema",
+        "error",
+        "failed",
+        "blocker",
+        "logs",
+        "npm",
+        "package-lock",
+        "razorpay",
+        "signalr",
+        "northflank",
+        "github",
+        "remote"
+    )
+
+    foreach ($pattern in $technicalPatterns) {
+        if ($lower.Contains($pattern)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-TechnicalSignalScore {
+    param([string]$Line)
+
+    $lower = (Normalize-IndexLine $Line).ToLower()
+    $score = 0
+
+    foreach ($pattern in @(".prisma", "prisma", "schema", "hostinger", "neon", "database", "razorpay", "signalr", "northflank")) {
+        if ($lower.Contains($pattern)) {
+            $score += 3
+        }
+    }
+
+    foreach ($pattern in @("deploy", "build", "failed", "error", "logs", "npm", "package-lock", "github", "remote", "api ", "route")) {
+        if ($lower.Contains($pattern)) {
+            $score += 1
+        }
+    }
+
+    return $score
+}
+
+function Get-LatestTechnicalSignals {
+    param(
+        [string]$Path,
+        [int]$MaxLines = 2
+    )
+
+    if (!(Test-Path $Path)) {
+        return @()
+    }
+
+    $signals = @()
+
+    foreach ($line in (Get-Content $Path -ErrorAction SilentlyContinue)) {
+        if (!(Test-TechnicalSignalLine $line)) {
+            continue
+        }
+
+        $clean = Normalize-IndexLine $line
+
+        if (@($signals | Where-Object { $_.Line -eq $clean }).Count -eq 0) {
+            $signals += [PSCustomObject]@{
+                Line = $clean
+                Score = Get-TechnicalSignalScore $clean
+            }
+        }
+    }
+
+    return @($signals |
+        Sort-Object @{Expression="Score";Descending=$true} |
+        Select-Object -First $MaxLines |
+        ForEach-Object { $_.Line })
+}
+
 function Get-ProjectIndexSignals {
     param([string]$ProjectDir)
 
@@ -162,7 +260,13 @@ function Get-ProjectIndexSignals {
     $nextActions = Join-Path $ProjectDir "NEXT_ACTIONS.md"
 
     $signals = @()
-    $signals += Get-CleanProjectContextLines -Path $projectContext -MaxLines 2 | ForEach-Object { "Status: $_" }
+    $statusLines = Get-CleanProjectContextLines -Path $projectContext -MaxLines 2
+    $technicalLines = Get-LatestTechnicalSignals -Path $projectContext -MaxLines 3 |
+        Where-Object { $statusLines -notcontains $_ } |
+        Select-Object -First 2
+
+    $signals += $statusLines | ForEach-Object { "Status: $_" }
+    $signals += $technicalLines | ForEach-Object { "Signal: $_" }
     $signals += Get-CleanIndexLines -Path $decisions -MaxLines 2 -Prefix "Decision: "
     $signals += Get-CleanIndexLines -Path $nextActions -MaxLines 2 -Prefix "Next: "
 

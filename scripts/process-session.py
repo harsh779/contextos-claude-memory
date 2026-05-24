@@ -554,9 +554,84 @@ def clean_index_lines(path, max_lines=4, prefix=""):
     return lines[:max_lines]
 
 
+def is_technical_signal(line):
+    if is_index_noise(line):
+        return False
+
+    lower = normalize_index_line(line).lower()
+    technical_patterns = [
+        ".prisma",
+        "prisma",
+        "hostinger",
+        "deploy",
+        "build",
+        "neon",
+        "database",
+        "db ",
+        "api ",
+        "route",
+        "schema",
+        "error",
+        "failed",
+        "blocker",
+        "logs",
+        "npm",
+        "package-lock",
+        "razorpay",
+        "signalr",
+        "northflank",
+        "github",
+        "remote",
+    ]
+
+    return any(pattern in lower for pattern in technical_patterns)
+
+
+def technical_signal_score(line):
+    lower = normalize_index_line(line).lower()
+    score = 0
+
+    for pattern in [".prisma", "prisma", "schema", "hostinger", "neon", "database", "razorpay", "signalr", "northflank"]:
+        if pattern in lower:
+            score += 3
+
+    for pattern in ["deploy", "build", "failed", "error", "logs", "npm", "package-lock", "github", "remote", "api ", "route"]:
+        if pattern in lower:
+            score += 1
+
+    return score
+
+
+def latest_technical_signals(path, max_lines=2):
+    if not path.exists():
+        return []
+
+    signals = []
+
+    for raw_line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        if not is_technical_signal(raw_line):
+            continue
+
+        line = normalize_index_line(raw_line)
+
+        if not any(existing["line"] == line for existing in signals):
+            signals.append({"line": line, "score": technical_signal_score(line)})
+
+    signals.sort(key=lambda item: item["score"], reverse=True)
+    return [item["line"] for item in signals[:max_lines]]
+
+
 def project_index_signals(project):
     signals = []
-    signals.extend([f"Status: {line}" for line in clean_project_context_lines(project / "PROJECT_CONTEXT.md", 2)])
+    project_context = project / "PROJECT_CONTEXT.md"
+    status_lines = clean_project_context_lines(project_context, 2)
+    technical_lines = [
+        line for line in latest_technical_signals(project_context, 3)
+        if line not in status_lines
+    ][:2]
+
+    signals.extend([f"Status: {line}" for line in status_lines])
+    signals.extend([f"Signal: {line}" for line in technical_lines])
     signals.extend(clean_index_lines(project / "DECISIONS.md", 2, "Decision: "))
     signals.extend(clean_index_lines(project / "NEXT_ACTIONS.md", 2, "Next: "))
     return signals[:6]
