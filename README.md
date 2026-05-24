@@ -1,6 +1,6 @@
 # ContextOS for Claude Code
 
-**A Windows-first local memory layer for Claude Code that reduces repeated context-setting across AI coding sessions.**
+**A local memory layer for Claude Code that reduces repeated context-setting across AI coding sessions on Windows and macOS.**
 
 ContextOS creates a reusable memory vault for each project, captures session progress, extracts decisions and next actions, estimates repeated context avoided, and generates restart packs so long-running AI-assisted builds can continue without re-explaining the same context every time.
 
@@ -17,14 +17,26 @@ cd contextos-claude-memory
 
 ### 2. Run the installer
 
+Windows:
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+macOS:
+
+```bash
+bash ./install-macos.sh
 ```
 
 Optional custom vault location:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:\ContextOS"
+```
+
+```bash
+bash ./install-macos.sh --vault "$HOME/ContextOS"
 ```
 
 Rerunning `install.ps1` after pulling a new ContextOS version is safe. It updates reusable scripts in your vault and does not delete existing project memory.
@@ -215,7 +227,7 @@ Example output:
 ContextOS Status
 ================
 
-Version:                         v0.1.4-dev
+Version:                         v0.1.5-dev
 Vault path:                      C:\Users\<User>\AI-Memory-Vault
 Vault exists:                    Yes
 Scripts folder exists:           Yes
@@ -262,7 +274,7 @@ contextos-status --version
 Expected output:
 
 ```text
-ContextOS v0.1.4-dev
+ContextOS v0.1.5-dev
 ```
 
 ### 2. Generate a restart pack
@@ -329,6 +341,7 @@ Working MVP:
 - global auto-bootstrap
 - session-start context injection
 - session-end capture
+- macOS Bash installer and commands
 - decision extraction
 - next-action extraction
 - log compression
@@ -385,6 +398,7 @@ Private files to avoid committing:
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Windows setup](docs/SETUP_WINDOWS.md)
+- [macOS setup](docs/SETUP_MACOS.md)
 - [Usage](docs/USAGE.md)
 - [Upgrade guide](docs/UPGRADE.md)
 - [Doctor diagnostics](docs/DOCTOR.md)

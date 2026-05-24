@@ -2,8 +2,17 @@
 
 ## Start Claude Code normally
 
+Windows:
+
 ```powershell
 cd C:\path\to\your\project
+claude
+```
+
+macOS:
+
+```bash
+cd /path/to/your/project
 claude
 ```
 
@@ -89,6 +98,8 @@ Run:
 ```powershell
 contextos-status
 ```
+
+On macOS, the command name is the same after running `install-macos.sh`.
 
 This shows whether ContextOS is installed and working. Run it after install or upgrade.
 

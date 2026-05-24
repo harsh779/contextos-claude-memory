@@ -23,6 +23,12 @@ Default path:
 %USERPROFILE%\\AI-Memory-Vault
 ```
 
+macOS default path:
+
+```text
+~/AI-Memory-Vault
+```
+
 ## Raw Transcript Copying
 
 ContextOS is privacy-first by default. It does not copy raw Claude Code transcript files into the memory vault unless explicitly enabled.
@@ -31,6 +37,12 @@ To enable duplicate raw transcript copies:
 
 ```powershell
 $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
+```
+
+macOS:
+
+```bash
+export CONTEXTOS_COPY_RAW_TRANSCRIPTS=true
 ```
 
 Only the exact value `true` enables copying. Any other value, including an unset variable, disables it.
@@ -69,6 +81,12 @@ To disable it for a sensitive session:
 
 ```powershell
 $env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
+```
+
+macOS:
+
+```bash
+export CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false
 ```
 
 Only the exact lowercase value `false` disables cross-project startup injection. Any other value, including unset, keeps it enabled.

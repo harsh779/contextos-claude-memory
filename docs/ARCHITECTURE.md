@@ -11,6 +11,11 @@ ContextOS uses Claude Code lifecycle hooks:
 
 These hooks are configured in Claude Code settings and call PowerShell scripts.
 
+On macOS, Claude Code hooks call the Bash equivalents:
+
+- `contextos-start.sh`
+- `contextos-capture.sh`
+
 ### 2. Memory Vault
 
 Default local vault path:

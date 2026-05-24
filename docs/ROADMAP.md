@@ -32,6 +32,7 @@
 
 - Cross-project project index
 - Default-on cross-project startup injection
+- macOS installer and Bash commands
 - Chat/Cowork inbox capture
 - Folder watcher
 - Better semantic search

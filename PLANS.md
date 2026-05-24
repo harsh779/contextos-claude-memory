@@ -1,56 +1,56 @@
-# v0.1.4 Cross-Project Awareness Plan
+# v0.1.5 macOS Support Plan
 
 ## Scope
 
-- Add a vault-level `PROJECT_INDEX.md` that summarizes tracked projects.
-- Add a `contextos-projects` command to refresh and display the project index.
-- Make default SessionStart behavior include current project memory plus compact cross-project awareness.
-- Add an opt-out for cross-project startup injection behind `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false`.
-- Surface cross-project status in `contextos-status` and `contextos-doctor`.
-- Update installer wrappers and user docs.
+- Add `install-macos.sh`.
+- Add macOS/Linux Bash command scripts for Claude Code hooks and user commands.
+- Reuse existing Python processing for SessionEnd and project index updates.
+- Keep Windows PowerShell scripts unchanged.
+- Add macOS setup documentation and README links.
+- Keep raw transcript privacy disabled by default.
+- Keep cross-project startup memory enabled by default, with `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false` opt-out.
 
 ## Constraints
 
-- Do not weaken raw transcript privacy behavior.
-- Do not inject all project memory by default.
-- Keep injected cross-project context compact and summary-only.
-- Do not copy raw transcripts or session logs into the global index.
-- Avoid new dependencies.
+- Do not tag v0.1.5 yet.
+- Avoid new dependencies beyond Bash and Python 3.
+- Do not weaken Windows behavior.
+- Do not store or copy raw transcripts unless `CONTEXTOS_COPY_RAW_TRANSCRIPTS=true`.
+- Keep shell scripts POSIX-friendly enough for macOS Bash 3.2.
 
 ## Unknowns
 
-- Final v0.1.4 release/tag timing: Not specified.
-- Whether cross-project context should later use semantic ranking: Not specified.
+- Full macOS runtime validation is not available from this Windows environment.
+- Exact Claude Code macOS settings location is assumed to be `~/.claude/settings.json`.
 
 ## Decisions
 
-- Use `v0.1.4-dev` during implementation.
-- Store the global index at `AI-Memory-Vault\PROJECT_INDEX.md`.
-- Add `scripts/contextos-projects.ps1` as the explicit cross-project discovery command.
-- Enable startup cross-project injection by default. Disable it only when `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY` is exactly `false`.
-- Rebuild `PROJECT_INDEX.md` automatically on SessionEnd so it stays current after each completed Claude Code session. SessionStart and `contextos-projects` also refresh it as fallback/manual paths.
+- Use `v0.1.5-dev` in install/status/doctor outputs.
+- Use `~/AI-Memory-Vault` as the default macOS vault path.
+- Add Bash scripts with the same command names as Windows, using `.sh` suffix in `scripts/` and extensionless wrappers in the vault root.
+- Keep Python as the shared SessionEnd processor and use Bash for SessionStart/status/index/search/resume/open/doctor.
 
 ## Implementation Sequence
 
-1. Add shared project-index generation logic to SessionEnd and SessionStart.
-2. Add `contextos-projects.ps1`.
-3. Update installer wrappers and script lists.
-4. Update status and doctor diagnostics.
-5. Update README and relevant docs.
-6. Run parse and smoke validation.
+1. Add Bash scripts under `scripts/`.
+2. Add `install-macos.sh`.
+3. Update Windows installer/status/doctor script lists so they recognize macOS scripts when copied.
+4. Add macOS docs and update README/config/usage/upgrade/changelog.
+5. Run PowerShell parse, Python compile, Bash syntax checks if available, privacy regression, and installer smoke tests.
+6. Commit and push.
 
 ## Validation Sequence
 
-- PowerShell parse checks for changed scripts.
-- Python compile checks for existing Python scripts.
+- PowerShell parse checks.
+- Python compile checks.
+- Bash syntax checks with `bash -n` where available.
 - Raw transcript privacy regression.
-- `contextos-projects` temp-vault smoke test.
-- `contextos-start` default mode smoke test confirms no cross-project section unless enabled.
-- `contextos-start` enabled mode smoke test confirms compact cross-project context appears.
-- Installer temp-vault smoke test confirms wrapper creation.
+- Windows installer smoke check.
+- macOS installer syntax/static smoke check from Windows.
+- Status/doctor smoke checks.
 
 ## Risks
 
-- Cross-project context could leak unrelated project details if enabled too broadly.
-- Large vaults could produce bloated startup context if index generation is not capped.
-- Existing users need to rerun `install.ps1` before the new command wrapper exists in their vault.
+- Bash scripts are syntax-checked locally but not fully executed on macOS in this environment.
+- Clipboard behavior for `contextos-resume.sh` depends on macOS `pbcopy`.
+- Opening folders uses `open` on macOS and falls back to printing the path elsewhere.

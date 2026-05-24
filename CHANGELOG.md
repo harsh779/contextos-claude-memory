@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.5-dev - In Progress
+
+### Added
+- macOS installer: `install-macos.sh`.
+- macOS Bash scripts for SessionStart, SessionEnd, status, doctor, projects, find, resume, and open commands.
+- macOS setup documentation in `docs/SETUP_MACOS.md`.
+- Extensionless macOS command wrappers such as `contextos-status`, `contextos-doctor`, and `contextos-projects`.
+
+### Changed
+- Version moved to `v0.1.5-dev`.
+- README now describes Windows and macOS install paths.
+- macOS support reuses the shared Python SessionEnd processor and preserves the same privacy defaults.
+
 ## 0.1.4-dev - In Progress
 
 ### Added

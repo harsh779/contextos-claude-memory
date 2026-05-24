@@ -18,18 +18,36 @@ Rerun the installer after:
 
 From the repo root:
 
+Windows:
+
 ```powershell
 git pull
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+macOS:
+
+```bash
+git pull
+bash ./install-macos.sh
 ```
 
 ## Custom Vault Upgrade Command
 
 If you use a custom vault:
 
+Windows:
+
 ```powershell
 git pull
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:\ContextOS"
+```
+
+macOS:
+
+```bash
+git pull
+bash ./install-macos.sh --vault "$HOME/ContextOS"
 ```
 
 ## What Gets Updated

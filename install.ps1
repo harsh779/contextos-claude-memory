@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ContextOSVersion = "v0.1.4-dev"
+$ContextOSVersion = "v0.1.5-dev"
 
 function Write-Step {
     param([string]$Message)
