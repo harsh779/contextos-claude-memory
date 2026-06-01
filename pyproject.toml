@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contextos-claude-memory"
+version = "0.2.0"
+description = "Local memory layer for Claude Code: session continuity, decision tracking, cross-project recall"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Harsh Khandelwal", email = "harsh@harsh779.com"},
+]
+keywords = ["claude", "claude-code", "memory", "ai", "context", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+tiktoken = ["tiktoken>=0.5.0"]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4.0",
+    "tiktoken>=0.5.0",
+]
+
+[project.scripts]
+contextos = "contextos.cli:main"
+contextos-status = "contextos.status:cli_status"
+contextos-doctor = "contextos.doctor:cli_doctor"
+contextos-find = "contextos.search:cli_search"
+contextos-resume = "contextos.resume:cli_resume"
+contextos-projects = "contextos.projects:cli_projects"
+contextos-open = "contextos.open_project:cli_open"
+contextos-gc = "contextos.gc:cli_gc"
+contextos-diff = "contextos.diff:cli_diff"
+contextos-migrate = "contextos.schema:cli_migrate"
+
+[project.urls]
+Homepage = "https://github.com/harsh779/contextos-claude-memory"
+Repository = "https://github.com/harsh779/contextos-claude-memory"
+Issues = "https://github.com/harsh779/contextos-claude-memory/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

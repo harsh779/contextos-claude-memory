@@ -1,448 +1,211 @@
-# ContextOS for Claude Code
+# ContextOS
 
-**A local memory layer for Claude Code that reduces repeated context-setting across AI coding sessions on Windows and macOS.**
+<!-- Uncomment when published:
+[![PyPI version](https://img.shields.io/pypi/v/contextos-claude-memory)](https://pypi.org/project/contextos-claude-memory/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+-->
 
-ContextOS creates a reusable memory vault for each project, captures session progress, extracts decisions and next actions, estimates repeated context avoided, and generates restart packs so long-running AI-assisted builds can continue without re-explaining the same context every time.
+**Local memory layer for Claude Code.** Session continuity, decision tracking, and cross-project recall — entirely on your machine.
 
 ---
 
-## 5-Minute Quickstart
+## The Problem
 
-### 1. Clone the repo
+- Claude Code forgets everything between sessions. You re-explain project goals, decisions, and state every time.
+- Long-running builds lose momentum. Context that took 20 minutes to establish vanishes when you close the terminal.
+- There's no structured way to resume where you left off across projects.
 
-```powershell
-git clone https://github.com/harsh779/contextos-claude-memory.git
-cd contextos-claude-memory
-```
+## The Solution
 
-### 2. Run the installer
+ContextOS hooks into Claude Code's session lifecycle. It captures decisions, next actions, and project state on session end, then injects that memory back on session start. No cloud, no API keys, no config files to maintain — just `pip install` and go.
 
-Windows:
+---
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-macOS:
+## Install
 
 ```bash
-bash ./install-macos.sh
+pip install contextos-claude-memory[tiktoken]
+contextos doctor
 ```
 
-Optional custom vault location:
+That's it. `doctor` validates the install, checks your Claude Code hooks, and reports any issues.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -VaultPath "D:\ContextOS"
+> **Windows:** Same commands work in PowerShell. Python 3.10+ required on all platforms.
+
+---
+
+## How It Works
+
 ```
-
-```bash
-bash ./install-macos.sh --vault "$HOME/ContextOS"
-```
-
-Rerunning `install.ps1` after pulling a new ContextOS version is safe. It updates reusable scripts in your vault and does not delete existing project memory.
-
-### 3. Add hooks to Claude Code
-
-The installer prints a Claude Code settings snippet.
-
-Add or merge that snippet into:
-
-```text
-%USERPROFILE%\.claude\settings.json
-```
-
-### 4. Test auto-bootstrap
-
-```powershell
-mkdir $env:USERPROFILE\Desktop\contextos-auto-test
-cd $env:USERPROFILE\Desktop\contextos-auto-test
-claude
-```
-
-Ask Claude Code:
-
-```text
-What ContextOS memory did you receive?
-```
-
-Expected result: Claude should mention auto-created memory files like `PROJECT_CONTEXT.md`, `DECISIONS.md`, `NEXT_ACTIONS.md`, and `graph.mmd`.
-
-### 5. Test commands
-
-Open a new PowerShell window, then run:
-
-```powershell
-contextos-status
-contextos-status --version
-contextos-doctor
-contextos-projects
-contextos-find "test"
-contextos-resume contextos-auto-test
-contextos-open contextos-auto-test
+┌─────────────────────────────────────────────────┐
+│                  Claude Code                     │
+│                                                  │
+│  SessionStart hook          SessionEnd hook       │
+│       │                          │                │
+│       ▼                          ▼                │
+│  ┌──────────┐             ┌───────────┐          │
+│  │  Inject  │             │  Capture  │          │
+│  │  memory  │             │  progress │          │
+│  └────┬─────┘             └─────┬─────┘          │
+│       │                         │                 │
+└───────┼─────────────────────────┼─────────────────┘
+        │                         │
+        ▼                         ▼
+┌─────────────────────────────────────────────────┐
+│              ~/.contextos/vault/                 │
+│                                                  │
+│  PROJECT_INDEX.md      projects/                 │
+│                          └─ my-app/              │
+│                              ├─ PROJECT_CONTEXT  │
+│                              ├─ DECISIONS        │
+│                              ├─ NEXT_ACTIONS     │
+│                              ├─ SESSION_LOG      │
+│                              └─ graph.mmd        │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Why this exists
+## Features
 
-AI coding sessions often lose efficiency because the user has to repeatedly explain:
-
-- project goal
-- repo state
-- prior decisions
-- current blockers
-- next actions
-- files touched
-- commands already tested
-
-ContextOS solves this by keeping a local, project-level memory system outside the AI chat window.
-
----
-
-## What it does
-
-| Capability | What it means |
+| Feature | Description |
 |---|---|
-| Project memory vault | Creates structured memory files for each local project |
-| Session start context | Injects relevant project memory when Claude Code starts |
-| Session end capture | Saves session progress when work ends |
-| Decision extraction | Pulls key decisions into `DECISIONS.md` |
-| Next-action extraction | Pulls follow-up work into `NEXT_ACTIONS.md` |
-| Restart packs | Generates compact context packs for future AI sessions |
-| Search | Lets you search across prior project memory |
-| Cross-project index | Maintains a summary index of tracked projects for explicit recall |
-| Status check | Shows whether ContextOS is installed, hooked, and working |
-| Doctor diagnostics | Checks vault health, installed scripts, PATH, Python, Claude hooks, and privacy state |
-| Version check | Prints the installed ContextOS version |
-| Upgrade-safe installer | Safely refreshes vault scripts and wrappers after pulling new releases |
-| Raw transcript privacy toggle | Keeps duplicate raw transcript copying disabled unless explicitly enabled |
-| Token estimate | Estimates repeated context avoided across resumed sessions |
-| Local-first design | Keeps private project memory on the user's machine |
-
----
-
-## How it works
-
-```text
-Open Claude Code inside any project folder
-↓
-ContextOS detects the current project
-↓
-Creates or loads project memory
-↓
-Injects relevant memory at session start
-↓
-User works normally in Claude Code
-↓
-Session ends
-↓
-ContextOS captures progress, decisions, and next actions
-↓
-Future sessions can restart from a compact context pack
-```
-
----
-
-## What gets created per project
-
-```text
-AI-Memory-Vault/
-  PROJECT_INDEX.md
-  projects/
-    project-name/
-      PROJECT_CONTEXT.md
-      DECISIONS.md
-      NEXT_ACTIONS.md
-      SESSION_LOG.md
-      TOKEN_SAVINGS.md
-      graph.mmd
-      raw/        (only when raw transcript copying is enabled)
-      sessions/
-      archives/
-```
+| Auto-bootstrap | Detects new projects, creates memory structure on first session |
+| Session injection | Loads project memory into Claude Code at session start |
+| Session capture | Extracts decisions, next actions, and progress at session end |
+| Restart packs | Generates compact context packs for resuming work |
+| Cross-project index | Maintains a vault-level summary so Claude sees related projects |
+| Memory search | Full-text search across all project memory |
+| Token savings | Estimates repeated context avoided across sessions |
+| Doctor diagnostics | Validates install, hooks, vault health, and privacy state |
+| Garbage collection | Cleans stale sessions and archives old data |
+| Schema migrations | Upgrades vault structure across ContextOS versions |
+| Privacy-first | Local-only. No cloud. Raw transcript copying off by default |
 
 ---
 
 ## Commands
 
-Check whether ContextOS is working:
+| Command | What it does |
+|---|---|
+| `contextos doctor` | Validate install, hooks, vault health |
+| `contextos-status` | Show vault state, hook status, token savings |
+| `contextos-status --version` | Print installed version |
+| `contextos-projects` | Rebuild and display the cross-project index |
+| `contextos-find "query"` | Search across all project memory |
+| `contextos-resume <project>` | Generate a restart pack (copies to clipboard) |
+| `contextos-open <project>` | Open a project's memory folder in Finder/Explorer |
+| `contextos-gc` | Clean stale sessions and archives |
+| `contextos-diff` | Show what changed since last session |
+| `contextos-migrate` | Run vault schema migrations |
 
-```powershell
-contextos-status
+---
+
+## Before / After
+
+**Without ContextOS** — every session starts cold:
+
+```
+You: Build the auth module for my Flask app
+Claude: What framework are you using? What's the project structure?
+        What auth approach did you decide on? Where did you leave off?
+You: [spends 5 minutes re-explaining context from yesterday]
 ```
 
-Check the installed ContextOS version:
+**With ContextOS** — Claude already knows:
 
-```powershell
-contextos-status --version
 ```
+ContextOS active: loaded memory for my-flask-app
 
-Run install diagnostics:
-
-```powershell
-contextos-doctor
-```
-
-Refresh and view the cross-project index:
-
-```powershell
-contextos-projects
-```
-
-`PROJECT_INDEX.md` is rebuilt automatically on SessionEnd after ContextOS processes a completed session. `contextos-projects` is the manual refresh/inspection command.
-
-Search memory:
-
-```powershell
-contextos-find "github remote"
-```
-
-Create a restart pack:
-
-```powershell
-contextos-resume resume-customiser-repo
-```
-
-Open a project memory folder:
-
-```powershell
-contextos-open resume-customiser-repo
+You: Build the auth module
+Claude: Continuing from yesterday — you chose JWT with refresh tokens,
+        the User model is in models/user.py, and the /login endpoint
+        skeleton is ready. I'll implement the token generation next.
 ```
 
 ---
 
-## Demo
+## What Gets Created
 
-### 1. Check whether ContextOS is working
-
-Run:
-
-```powershell
-contextos-status
 ```
-
-Example output:
-
-```text
-ContextOS Status
-================
-
-Version:                         v0.1.5-dev
-Vault path:                      C:\Users\<User>\AI-Memory-Vault
-Vault exists:                    Yes
-Scripts folder exists:           Yes
-Required scripts installed:      Yes
-Projects tracked:                6
-Context packs created:           5
-Token savings files:             1
-Estimated tokens avoided:        2150
-Raw transcript copying:          Disabled
-Cross-project memory:            Enabled
-Project index exists:            Yes
-Projects command available:      Yes
-Doctor command available:        Yes
-Claude settings found:           Yes
-Hooks configured:                Yes
-SessionStart hook:               Yes
-SessionEnd hook:                 Yes
-Last captured project:           contextos-auto-test
-Last capture time:               2026-05-01 16:43:36
+~/.contextos/vault/
+├── PROJECT_INDEX.md              # cross-project summary
+├── context-packs/                # generated restart packs
+└── projects/
+    └── <project-name>/
+        ├── PROJECT_CONTEXT.md    # project goals, stack, structure
+        ├── DECISIONS.md          # extracted technical decisions
+        ├── NEXT_ACTIONS.md       # follow-up work items
+        ├── SESSION_LOG.md        # compressed session history
+        ├── TOKEN_SAVINGS.md      # token reuse estimates
+        ├── graph.mmd             # project dependency graph
+        ├── sessions/             # individual session snapshots
+        └── archives/             # rotated old sessions
 ```
-
-Key checks:
-
-- `Version` shows the installed ContextOS version.
-- `Vault exists: Yes` means the memory vault is present.
-- `Required scripts installed: Yes` means ContextOS scripts are installed.
-- `Hooks configured: Yes` means Claude Code settings include ContextOS hooks.
-- `SessionStart hook: Yes` means memory injection is configured.
-- `SessionEnd hook: Yes` means session capture is configured.
-- `Token savings files` means ContextOS has started tracking token-savings estimates.
-- `Estimated tokens avoided` is the estimated repeated context avoided across tracked sessions.
-- `Raw transcript copying: Disabled` means ContextOS will process Claude's original transcript path but will not duplicate raw transcript files into the vault.
-- `Cross-project memory: Enabled` means Claude startup context includes a compact vault-level project index alongside the current project memory.
-- `Project index exists: Yes` means ContextOS has created the vault-level `PROJECT_INDEX.md` summary.
-- `Projects command available: Yes` means the cross-project index command wrapper is installed in the vault.
-- `Doctor command available: Yes` means the diagnostic command wrapper is installed in the vault.
-
-Version-only check:
-
-```powershell
-contextos-status --version
-```
-
-Expected output:
-
-```text
-ContextOS v0.1.5-dev
-```
-
-### 2. Generate a restart pack
-
-Run:
-
-```powershell
-contextos-resume resume-customiser-repo
-```
-
-Example output:
-
-```text
-ContextOS resume pack created:
-C:\Users\<User>\AI-Memory-Vault\context-packs\resume-customiser-repo-context-pack-2026-05-01_16-55-00.md
-
-Copied to clipboard.
-
-Token estimate:
----------------
-Resume pack characters: 4,800
-Estimated tokens: 1,200
-Estimated re-explanation avoided per resumed session: ~1,200 tokens
-```
-
-### 3. Confirm Claude receives project memory
-
-When Claude Code starts inside a tracked project, ContextOS injects a visible startup line:
-
-```text
-ContextOS active: loaded memory for resume-customiser-repo from C:\Users\<User>\AI-Memory-Vault\projects\resume-customiser-repo
-```
-
-That line confirms Claude received local project memory before the session begins.
 
 ---
 
-## Token savings estimate
+## Configuration
 
-ContextOS estimates token savings using a simple approximation:
+All configuration is via environment variables. No config files to manage.
 
-```text
-1 token ≈ 4 characters of English text
+| Variable | Default | Purpose |
+|---|---|---|
+| `CONTEXTOS_VAULT_PATH` | `~/.contextos/vault` | Custom vault location |
+| `CONTEXTOS_COPY_RAW_TRANSCRIPTS` | `false` | Enable raw transcript archiving |
+| `CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY` | `true` | Include project index in session injection |
+
+```bash
+# Example: custom vault location
+export CONTEXTOS_VAULT_PATH="$HOME/my-vault"
+
+# Example: disable cross-project memory for a sensitive session
+CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false claude
 ```
-
-The estimate is not an exact model-provider token count. It is a practical directional metric that shows how much repeated project explanation ContextOS helps avoid.
-
-Example:
-
-```text
-Estimated current memory context tokens: 1,075
-Sessions captured: 3
-Estimated repeated context avoided: 2,150 tokens
-```
-
-This means ContextOS likely helped avoid re-explaining around 2,150 tokens of project context across resumed sessions.
 
 ---
 
-## Current status
+## Privacy
 
-Working MVP:
-
-- global auto-bootstrap
-- session-start context injection
-- session-end capture
-- macOS Bash installer and commands
-- decision extraction
-- next-action extraction
-- log compression
-- memory search
-- cross-project project index
-- restart pack generation
-- status command
-- doctor diagnostics command
-- version command
-- upgrade-safe installer reruns
-- privacy-first raw transcript copy toggle
-- token-savings estimate
-
----
-
-## Portfolio relevance
-
-This project shows how AI workflows can be operationalised beyond one-off prompting. The goal is not just to use AI tools, but to build a repeatable system that improves continuity, reduces wasted tokens, and makes long-running product builds easier to resume.
-
----
-
-## Privacy note
-
-Do not commit actual memory vault data.
-
-This repository should contain only reusable scripts, templates, docs, and examples.
-
-Raw Claude Code transcript copying is disabled by default. ContextOS still reads the original `transcript_path` from Claude Code event metadata to create summaries, decisions, next actions, `SESSION_LOG.md`, and `TOKEN_SAVINGS.md`. To opt in to keeping duplicate raw transcript files under `projects/<project-name>/raw/`, set:
-
-```powershell
-$env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
-```
-
-Cross-project startup injection is enabled by default. ContextOS includes a compact `PROJECT_INDEX.md` summary so Claude can see related prior project context.
-
-To disable cross-project startup memory for a sensitive session, set:
-
-```powershell
-$env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
-```
-
-Private files to avoid committing:
-
-- raw transcripts
-- session logs from real projects
-- context packs from private work
-- API keys
-- personal Claude settings
-- project-specific client data
+- **Local-only.** All data stays on your machine. No cloud, no telemetry, no API calls.
+- **Raw transcripts off by default.** ContextOS reads Claude's transcript to extract summaries but does not copy the raw file unless you opt in.
+- **Never commit your vault.** The vault contains project-specific memory. Add `~/.contextos/` to your global gitignore.
 
 ---
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Windows setup](docs/SETUP_WINDOWS.md)
-- [macOS setup](docs/SETUP_MACOS.md)
-- [Usage](docs/USAGE.md)
-- [Upgrade guide](docs/UPGRADE.md)
-- [Doctor diagnostics](docs/DOCTOR.md)
-- [Cross-project memory](docs/CROSS_PROJECT_MEMORY.md)
-- [Configuration](docs/CONFIGURATION.md)
-- [Privacy and security](docs/PRIVACY_AND_SECURITY.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Roadmap](docs/ROADMAP.md)
-- [v0.1.3 release notes](docs/RELEASE_NOTES_v0.1.3.md)
-- [v0.1.3 release checklist](docs/RELEASE_CHECKLIST_v0.1.3.md)
-- [v0.1.2 release notes](docs/RELEASE_NOTES_v0.1.2.md)
-- [v0.1.2 release checklist](docs/RELEASE_CHECKLIST_v0.1.2.md)
-- [v0.1.1 release notes](docs/RELEASE_NOTES_v0.1.1.md)
-- [v0.1.0 release notes](docs/RELEASE_NOTES_v0.1.0.md)
+| Doc | Contents |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | System design, hook lifecycle, data flow |
+| [Configuration](docs/CONFIGURATION.md) | All env vars and settings |
+| [Usage](docs/USAGE.md) | Detailed command reference |
+| [macOS Setup](docs/SETUP_MACOS.md) | macOS-specific install notes |
+| [Windows Setup](docs/SETUP_WINDOWS.md) | Windows-specific install notes |
+| [Doctor](docs/DOCTOR.md) | Diagnostic checks and remediation |
+| [Cross-project Memory](docs/CROSS_PROJECT_MEMORY.md) | How the project index works |
+| [Privacy & Security](docs/PRIVACY_AND_SECURITY.md) | Data handling and privacy model |
+| [Upgrade](docs/UPGRADE.md) | Version upgrade procedures |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
 
 ---
 
-## Release
+## Contributing
 
-Latest release notes:
-
-[ContextOS v0.1.3 - Doctor Command and Self-Healing Diagnostics](docs/RELEASE_NOTES_v0.1.3.md)
-
----
-
-## Upgrade
-
-After pulling a new ContextOS version, rerun the installer:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```bash
+git clone https://github.com/harsh779/contextos-claude-memory.git
+cd contextos-claude-memory
+pip install -e ".[tiktoken]"
+contextos doctor
 ```
 
-Then validate:
-
-```powershell
-contextos-status
-contextos-doctor
-```
-
-See [Upgrade guide](docs/UPGRADE.md) for custom vaults and troubleshooting.
+PRs welcome. Keep it simple — ContextOS is a local tool, not a platform.
 
 ---
 
-## Author
+## License
 
-Built by [Harsh Khandelwal](https://github.com/harsh779) as part of a broader AI-assisted product-building and workflow automation stack.
+MIT. See [LICENSE](LICENSE).
+
+Built by [Harsh Khandelwal](https://github.com/harsh779).

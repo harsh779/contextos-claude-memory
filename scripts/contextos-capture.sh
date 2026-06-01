@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Thin wrapper — delegates to Python package if installed
+if python3 -c "import contextos" 2>/dev/null; then
+  exec python3 -m contextos capture
+fi
 
+# Fallback: inline Python
 vault="${CONTEXTOS_VAULT_PATH:-$HOME/AI-Memory-Vault}"
 debug_dir="$vault/debug"
 mkdir -p "$debug_dir"
@@ -30,20 +35,18 @@ raw = Path(raw_debug_path).read_text(encoding="utf-8")
 try:
     hook = json.loads(raw)
 except Exception:
-    print("ContextOS capture failed: invalid JSON input.")
+    print(f"ContextOS capture failed: invalid JSON input.")
     print(f"Raw input saved here: {raw_debug_path}")
     sys.exit(1)
 
 debug_dir = vault / "debug"
-parsed_debug_path = debug_dir / "last-capture-parsed.json"
-parsed_debug_path.write_text(json.dumps(hook, indent=2), encoding="utf-8")
+(debug_dir / "last-capture-parsed.json").write_text(json.dumps(hook, indent=2), encoding="utf-8")
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 cwd = hook.get("cwd") or ""
 project_name = Path(cwd).name if cwd else "unknown-project"
 project_dir = vault / "projects" / project_name
 sessions_dir = project_dir / "sessions"
-raw_dir = project_dir / "raw"
 
 project_dir.mkdir(parents=True, exist_ok=True)
 sessions_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +56,7 @@ copy_raw = os.environ.get("CONTEXTOS_COPY_RAW_TRANSCRIPTS") == "true"
 raw_copy_path = None
 
 if copy_raw and transcript_path and Path(transcript_path).exists():
+    raw_dir = project_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     raw_copy_path = raw_dir / f"{timestamp}-transcript.jsonl"
     shutil.copyfile(transcript_path, raw_copy_path)
@@ -63,7 +67,6 @@ metadata = {
     "cwd": cwd,
     "transcript_path": transcript_path,
     "captured_at": timestamp,
-    "raw_debug_path": raw_debug_path,
     "copy_raw_transcripts": copy_raw,
     "raw_copy_path": str(raw_copy_path) if raw_copy_path else None,
 }
