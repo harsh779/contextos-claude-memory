@@ -46,6 +46,7 @@ fi
 mkdir -p "$vault" "$vault_scripts" "$vault/projects" "$vault/context-packs" "$vault/debug" "$vault/inbox"
 echo "[ContextOS] Vault folders ready."
 
+# Only copy .sh and .py scripts — .ps1 scripts are Windows-only and not needed on macOS
 copied=0
 for path in "$source_scripts"/*.sh "$source_scripts"/*.py; do
   [[ -f "$path" ]] || continue
@@ -78,7 +79,11 @@ for wrapper in "${wrapper_names[@]}"; do
 done | sort
 
 path_status="Skipped by --skip-path-update"
-shell_profile="$HOME/.zshrc"
+case "${SHELL:-}" in
+  */bash) shell_profile="$HOME/.bash_profile" ;;
+  */fish) shell_profile="$HOME/.config/fish/config.fish" ;;
+  */zsh|*) shell_profile="$HOME/.zshrc" ;;
+esac
 if [[ "$skip_path_update" != "true" ]]; then
   if [[ ":$PATH:" == *":$vault:"* ]]; then
     path_status="Already present in current PATH"
@@ -91,7 +96,7 @@ if [[ "$skip_path_update" != "true" ]]; then
       echo "export CONTEXTOS_VAULT_PATH=\"$vault\""
       echo "export PATH=\"$vault:\$PATH\""
     } >> "$shell_profile"
-    path_status="Updated $shell_profile; restart terminal or run: source ~/.zshrc"
+    path_status="Updated $shell_profile; restart terminal or run: source $shell_profile"
   fi
 fi
 

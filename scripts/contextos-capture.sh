@@ -14,7 +14,7 @@ if [[ -z "${input_json//[[:space:]]/}" ]]; then
   exit 0
 fi
 
-python3 - "$vault" "$raw_debug_path" "$input_json" <<'PY'
+python3 - "$vault" "$raw_debug_path" <<'PY'
 import json
 import os
 import shutil
@@ -25,7 +25,7 @@ from datetime import datetime
 
 vault = Path(sys.argv[1])
 raw_debug_path = sys.argv[2]
-raw = sys.argv[3]
+raw = Path(raw_debug_path).read_text(encoding="utf-8")
 
 try:
     hook = json.loads(raw)

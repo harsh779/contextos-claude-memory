@@ -93,11 +93,36 @@ fi
 section "Claude Hooks"
 if [[ -f "$settings_path" ]]; then
   check OK "Claude settings file exists" "$settings_path"
-  grep -q '"hooks"' "$settings_path" && check OK "hooks block appears" || { check FAIL "hooks block appears" "Missing"; add_fix "Merge the settings snippet printed by install-macos.sh."; }
-  grep -q 'SessionStart' "$settings_path" && check OK "SessionStart hook appears" || { check FAIL "SessionStart hook appears" "Missing"; add_fix "Merge the settings snippet printed by install-macos.sh."; }
-  grep -q 'SessionEnd' "$settings_path" && check OK "SessionEnd hook appears" || { check FAIL "SessionEnd hook appears" "Missing"; add_fix "Merge the settings snippet printed by install-macos.sh."; }
-  grep -q 'contextos-start.sh' "$settings_path" && check OK "contextos-start.sh appears in settings" || { check FAIL "contextos-start.sh appears in settings" "Missing"; add_fix "Merge the settings snippet printed by install-macos.sh."; }
-  grep -q 'contextos-capture.sh' "$settings_path" && check OK "contextos-capture.sh appears in settings" || { check FAIL "contextos-capture.sh appears in settings" "Missing"; add_fix "Merge the settings snippet printed by install-macos.sh."; }
+  hooks_check="$(python3 -c "
+import json, sys
+try:
+    cfg = json.load(open('$settings_path'))
+    hooks = cfg.get('hooks', {})
+    results = {
+        'hooks': bool(hooks),
+        'SessionStart': 'SessionStart' in hooks,
+        'SessionEnd': 'SessionEnd' in hooks,
+    }
+    text = json.dumps(cfg)
+    results['contextos-start'] = 'contextos-start' in text
+    results['contextos-capture'] = 'contextos-capture' in text
+    for k, v in results.items():
+        print(f'{k}={v}')
+except Exception as e:
+    print(f'error={e}')
+" 2>&1)" || hooks_check="error=python3 failed"
+  if echo "$hooks_check" | grep -q "^error="; then
+    check FAIL "Claude settings parse" "$(echo "$hooks_check" | head -1)"
+  else
+    for key in hooks SessionStart SessionEnd contextos-start contextos-capture; do
+      if echo "$hooks_check" | grep -q "^${key}=True"; then
+        check OK "$key appears in settings"
+      else
+        check FAIL "$key appears in settings" "Missing"
+        add_fix "Merge the settings snippet printed by install-macos.sh."
+      fi
+    done
+  fi
 else
   check FAIL "Claude settings file exists" "$settings_path"
   add_fix "Create ~/.claude/settings.json and merge the settings snippet printed by install-macos.sh."

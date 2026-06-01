@@ -67,7 +67,11 @@ else
 fi
 
 chars="$(wc -c < "$output_path" | tr -d ' ')"
-tokens=$(( (chars + 3) / 4 ))
+tokens="$(python3 -c "
+import sys; sys.path.insert(0, '$vault/scripts')
+from contextos_index import estimate_tokens
+print(estimate_tokens(open('$output_path').read()))
+" 2>/dev/null || echo $(( (chars + 3) / 4 )))"
 
 echo
 echo "ContextOS resume pack created:"

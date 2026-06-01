@@ -34,7 +34,7 @@ The primary freshness path is SessionEnd. That keeps the index current with mini
 
 Run:
 
-```powershell
+```bash
 contextos-projects
 ```
 
@@ -42,7 +42,13 @@ This manually refreshes `PROJECT_INDEX.md` and prints it to the terminal.
 
 Direct script fallback from the repo:
 
+```bash
+# macOS / Linux
+bash ./scripts/contextos-projects.sh
+```
+
 ```powershell
+# Windows
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\contextos-projects.ps1
 ```
 
@@ -56,7 +62,13 @@ Cross-project memory: Enabled
 
 To disable compact cross-project startup context for a sensitive session:
 
+```bash
+# macOS / Linux
+export CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false
+```
+
 ```powershell
+# Windows
 $env:CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY = "false"
 ```
 
@@ -77,7 +89,13 @@ Cross-project awareness is summary-only. It does not change the raw transcript p
 
 Raw transcript copying remains disabled unless:
 
+```bash
+# macOS / Linux
+export CONTEXTOS_COPY_RAW_TRANSCRIPTS=true
+```
+
 ```powershell
+# Windows
 $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
 ```
 

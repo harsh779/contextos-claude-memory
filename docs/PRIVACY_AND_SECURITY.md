@@ -22,6 +22,10 @@ Raw Claude Code transcript copies are not stored by default.
 Default vault path:
 
 ```text
+# macOS / Linux
+~/AI-Memory-Vault
+
+# Windows
 %USERPROFILE%\AI-Memory-Vault
 ```
 
@@ -53,13 +57,19 @@ settings.local.json
 
 ## Raw Transcript Handling
 
-`contextos-capture.ps1` reads the original Claude Code `transcript_path` from event metadata so it can create summaries, decisions, next actions, `SESSION_LOG.md`, `TOKEN_SAVINGS.md`, and `graph.mmd`.
+`contextos-capture` (`.ps1` on Windows, `.sh` on macOS) reads the original Claude Code `transcript_path` from event metadata so it can create summaries, decisions, next actions, `SESSION_LOG.md`, `TOKEN_SAVINGS.md`, and `graph.mmd`.
 
 By default, it does not duplicate raw transcript files into the vault.
 
 To opt in to raw transcript copying for audit or recovery, set:
 
+```bash
+# macOS / Linux
+export CONTEXTOS_COPY_RAW_TRANSCRIPTS=true
+```
+
 ```powershell
+# Windows
 $env:CONTEXTOS_COPY_RAW_TRANSCRIPTS = "true"
 ```
 
@@ -119,6 +129,10 @@ Your Claude Code settings may contain:
 Do not publish your real Claude Code settings file:
 
 ```text
+# macOS / Linux
+~/.claude/settings.json
+
+# Windows
 %USERPROFILE%\.claude\settings.json
 ```
 
@@ -132,44 +146,33 @@ docs/settings.example.json
 
 Before pushing changes:
 
-```powershell
+```bash
 git status
-```
-
-Check that no private vault folder is staged:
-
-```powershell
 git diff --cached --name-only
 ```
 
 If private files are staged, unstage them:
 
-```powershell
+```bash
 git restore --staged <file-or-folder>
 ```
 
 ## Deleting Local Memory
 
-Use:
+macOS / Linux:
 
-```powershell
-.\uninstall.ps1
+```bash
+bash ./uninstall-macos.sh                    # remove scripts and PATH, keep vault
+bash ./uninstall-macos.sh --delete-vault     # also delete vault (requires confirmation)
+bash ./uninstall-macos.sh --delete-vault --force  # skip confirmation
 ```
 
-This removes environment and PATH setup but keeps your memory vault.
-
-To delete the vault:
+Windows:
 
 ```powershell
-.\uninstall.ps1 -DeleteVault
-```
-
-This requires confirmation.
-
-To force deletion without confirmation:
-
-```powershell
-.\uninstall.ps1 -DeleteVault -Force
+.\uninstall.ps1                   # remove scripts and PATH, keep vault
+.\uninstall.ps1 -DeleteVault      # also delete vault (requires confirmation)
+.\uninstall.ps1 -DeleteVault -Force  # skip confirmation
 ```
 
 Use force deletion carefully.

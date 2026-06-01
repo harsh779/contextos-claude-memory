@@ -8,7 +8,10 @@ if [[ -z "${input_json//[[:space:]]/}" ]]; then
   exit 0
 fi
 
-python3 - "$vault" "$input_json" <<'PY'
+tmp_input="$(mktemp)"
+printf '%s' "$input_json" > "$tmp_input"
+
+python3 - "$vault" "$tmp_input" <<'PY'
 import json
 import os
 import sys
@@ -16,7 +19,12 @@ from pathlib import Path
 from datetime import datetime
 
 vault = Path(sys.argv[1])
-raw = sys.argv[2]
+tmp_path = Path(sys.argv[2])
+
+try:
+    raw = tmp_path.read_text(encoding="utf-8")
+finally:
+    tmp_path.unlink(missing_ok=True)
 
 try:
     hook = json.loads(raw)
@@ -27,7 +35,18 @@ cwd = hook.get("cwd") or ""
 if not cwd:
     sys.exit(0)
 
-project_name = Path(cwd).name or "unknown-project"
+import hashlib
+cwd_path = Path(cwd)
+base_name = cwd_path.name or "unknown-project"
+parent_hash = hashlib.md5(str(cwd_path.parent).encode()).hexdigest()[:6]
+candidate = vault / "projects" / base_name
+if candidate.exists():
+    existing_ctx = candidate / "PROJECT_CONTEXT.md"
+    if existing_ctx.exists():
+        ctx_text = existing_ctx.read_text(encoding="utf-8", errors="ignore")
+        if cwd not in ctx_text:
+            base_name = f"{base_name}-{parent_hash}"
+project_name = base_name
 project_dir = vault / "projects" / project_name
 sessions_dir = project_dir / "sessions"
 raw_dir = project_dir / "raw"
@@ -75,75 +94,13 @@ def read_tail(path, max_chars):
         text = text[-max_chars:]
     return text
 
-def clean_line(line):
-    line = line.strip()
-    while line.startswith(("-", "*")):
-        line = line[1:].strip()
-    if len(line) > 220:
-        return ""
-    lower = line.lower()
-    noise = [
-        "auto-created by contextos",
-        "new project memory created automatically",
-        "no locked decisions captured yet",
-        "inspect current repo/project state",
-        "identify active goal",
-        "continue from latest claude code session context",
-        "no useful summary captured",
-        "none auto-detected",
-        "do not respond to these messages",
-        "local-command-caveat",
-    ]
-    if not line or line.startswith("#") or line == "---" or any(item in lower for item in noise):
-        return ""
-    return line
-
-def project_signals(path):
-    signals = []
-    for file_name, prefix in [
-        ("PROJECT_CONTEXT.md", "Status: "),
-        ("DECISIONS.md", "Decision: "),
-        ("NEXT_ACTIONS.md", "Next: "),
-    ]:
-        file_path = path / file_name
-        if not file_path.exists():
-            continue
-        for raw_line in file_path.read_text(encoding="utf-8", errors="ignore").splitlines():
-            if raw_line.startswith("## Latest Auto-Captured Status"):
-                break
-            line = clean_line(raw_line)
-            if line:
-                signals.append(prefix + line)
-            if len(signals) >= 6:
-                return signals
-    return signals
-
-def update_project_index():
-    projects_dir = vault / "projects"
+scripts_dir = vault / "scripts"
+sys.path.insert(0, str(scripts_dir))
+try:
+    from contextos_index import update_project_index as _shared_update
+    index_path = _shared_update(vault)
+except ImportError:
     index_path = vault / "PROJECT_INDEX.md"
-    projects_dir.mkdir(parents=True, exist_ok=True)
-    projects = sorted([p for p in projects_dir.iterdir() if p.is_dir()], key=lambda p: p.stat().st_mtime, reverse=True)
-    lines = [
-        "# ContextOS Project Index",
-        "",
-        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        "",
-        "This summary index is generated from project memory files. It does not include raw transcripts or full session logs.",
-        "",
-    ]
-    for project in projects:
-        lines.extend([f"## {project.name}", "", f"- Last updated: {datetime.fromtimestamp(project.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')}", f"- Memory path: {project}"])
-        signals = project_signals(project)
-        if signals:
-            lines.append("- Summary signals:")
-            lines.extend([f"  - {signal}" for signal in signals[:6]])
-        else:
-            lines.append("- Summary signals: None captured yet.")
-        lines.append("")
-    index_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    return index_path
-
-index_path = update_project_index()
 
 context = f"""# ContextOS Retrieved Memory for {project_name}
 
@@ -164,15 +121,17 @@ for file_name in ["PROJECT_CONTEXT.md", "DECISIONS.md", "NEXT_ACTIONS.md", "grap
     if text:
         context += f"\n## {file_name}\n{text}\n"
 
+PROJECT_BUDGET = 6000
+CROSS_PROJECT_BUDGET = 3000
+
+if len(context) > PROJECT_BUDGET:
+    context = context[:PROJECT_BUDGET] + "\n\n[Current project context truncated.]\n"
+
 if os.environ.get("CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY") != "false" and index_path.exists():
-    if len(context) > 6000:
-        context = context[:6000] + "\n\n[Current project context truncated before cross-project index.]\n"
-    index_text = index_path.read_text(encoding="utf-8", errors="ignore")[:3000]
+    index_text = index_path.read_text(encoding="utf-8", errors="ignore")[:CROSS_PROJECT_BUDGET]
     context += "\n## Cross-Project Awareness\n"
     context += "Cross-project memory is enabled by default. Use this vault-level index to identify possibly related prior work. Do not assume unrelated project details apply to the current project without user confirmation. To disable this startup section, set CONTEXTOS_ENABLE_CROSS_PROJECT_MEMORY=false.\n\n"
     context += index_text
-
-context = context[:9000]
 
 response = {
     "hookSpecificOutput": {

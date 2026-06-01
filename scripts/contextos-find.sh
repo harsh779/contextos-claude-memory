@@ -30,7 +30,7 @@ def low_value(line):
     return any(item in lower for item in ["ai-memory-vault", "older session log archived", "compression time"])
 
 results = []
-for path in projects_dir.rglob("*"):
+for path in sorted(projects_dir.rglob("*")):
     if not path.is_file() or path.suffix.lower() not in {".md", ".mmd"}:
         continue
     parts = {part.lower() for part in path.parts}

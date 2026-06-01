@@ -21,6 +21,10 @@ On macOS, Claude Code hooks call the Bash equivalents:
 Default local vault path:
 
 ```text
+# macOS / Linux
+~/AI-Memory-Vault
+
+# Windows
 C:\Users\<User>\AI-Memory-Vault
 ```
 
@@ -57,13 +61,18 @@ SessionEnd is the primary freshness path for `PROJECT_INDEX.md`. It keeps the va
 
 ### 5. Search, Index, And Resume
 
-`contextos-find.ps1` searches project memory files.
+| Command | Windows | macOS / Linux |
+|---------|---------|---------------|
+| Search memory | `contextos-find.ps1` | `contextos-find.sh` |
+| Refresh index | `contextos-projects.ps1` | `contextos-projects.sh` |
+| Resume pack | `contextos-resume.ps1` | `contextos-resume.sh` |
+| Open folder | `contextos-open.ps1` | `contextos-open.sh` |
+| Health check | `contextos-doctor.ps1` | `contextos-doctor.sh` |
+| Status | `contextos-status.ps1` | `contextos-status.sh` |
 
-`contextos-projects.ps1` refreshes and prints the vault-level project index.
+### 6. Shared Index Module
 
-`contextos-resume.ps1` creates a compact restart pack and copies it to clipboard.
-
-`contextos-open.ps1` opens a project memory folder in Explorer.
+`contextos_index.py` contains the shared signal filtering, noise detection, and index generation logic used by both `process-session.py` and the `contextos-projects` scripts. This prevents drift between the two code paths.
 
 ## Design Principle
 
